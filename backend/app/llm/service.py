@@ -1,79 +1,34 @@
-from openai import OpenAI
-
 from app.agents.hermes.models import PromptContext
 from app.athena.router import athena
-from app.config.settings import settings
+from app.llm.builder import message_builder
+from app.llm.orchestrator import llm_orchestrator
 
 
 class LLMService:
-    def __init__(self):
-        self.client = OpenAI(
-            base_url=settings.BASE_URL,
-            api_key=settings.NVIDIA_API_KEY,
-        )
+    """
+    Public interface for all LLM interactions.
+
+    Responsibilities:
+        • Build prompt messages
+        • Request routing decisions from Athena
+        • Delegate execution to the orchestrator
+
+    The _build_messages() method is retained as a
+    backwards-compatible wrapper for existing tests
+    and legacy callers.
+    """
 
     def _build_messages(
         self,
         context: PromptContext,
     ) -> list[dict]:
+        """
+        Backwards-compatible wrapper.
 
-        messages = [
-            {
-                "role": "system",
-                "content": context.system_prompt,
-            }
-        ]
-
-        if context.knowledge:
-
-            knowledge = "\n\n".join(
-                [
-                    f"# {result.note.title}\n{result.note.content}"
-                    for result in context.knowledge
-                ]
-            )
-
-            messages.append(
-                {
-                    "role": "system",
-                    "content": (
-                        "Relevant knowledge from the user's vault:\n\n"
-                        + knowledge
-                    ),
-                }
-            )
-
-        if context.tool_results:
-
-            tool_output = "\n\n".join(
-                [
-                    f"Tool: {tool.get('tool_name', 'Unknown')}\n"
-                    f"Success: {tool.get('success', False)}\n"
-                    f"Output:\n{tool.get('output', '')}"
-                    for tool in context.tool_results
-                ]
-            )
-
-            messages.append(
-                {
-                    "role": "system",
-                    "content": (
-                        "Recent tool execution results:\n\n"
-                        + tool_output
-                    ),
-                }
-            )
-
-        messages.extend(context.conversation)
-
-        messages.append(
-            {
-                "role": "user",
-                "content": context.user_query,
-            }
-        )
-
-        return messages
+        Delegates message construction to the
+        MessageBuilder component.
+        """
+        return message_builder.build(context)
 
     def chat(
         self,
@@ -86,37 +41,9 @@ class LLMService:
 
         messages = self._build_messages(context)
 
-        print(
-            f"[Athena] Primary: {decision.primary.value}"
-        )
-
-        for recommendation in decision.recommendations:
-
-            model = recommendation.model.value
-
-            print(f"[LLM] Trying {model}")
-
-            try:
-
-                response = self.client.chat.completions.create(
-                    model=model,
-                    messages=messages,
-                )
-
-                print(f"[LLM] Success: {model}")
-
-                return response.choices[0].message.content
-
-            except Exception as exc:
-
-                print(
-                    f"[LLM] Failed: {model}"
-                )
-
-                print(exc)
-
-        raise RuntimeError(
-            "All recommended models failed."
+        return llm_orchestrator.execute(
+            decision=decision,
+            messages=messages,
         )
 
 
