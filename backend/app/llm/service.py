@@ -1,7 +1,8 @@
 from openai import OpenAI
 
+from app.agents.hermes.models import PromptContext
+from app.athena.router import athena
 from app.config.settings import settings
-from app.llm.prompts.loader import prompt_loader
 
 
 class LLMService:
@@ -11,24 +12,112 @@ class LLMService:
             api_key=settings.NVIDIA_API_KEY,
         )
 
-        self.system_prompt = prompt_loader.load("system.md")
+    def _build_messages(
+        self,
+        context: PromptContext,
+    ) -> list[dict]:
 
-    def chat(self, messages: list[dict]) -> str:
-        conversation = [
+        messages = [
             {
                 "role": "system",
-                "content": self.system_prompt,
+                "content": context.system_prompt,
             }
         ]
 
-        conversation.extend(messages)
+        if context.knowledge:
 
-        response = self.client.chat.completions.create(
-            model=settings.MODEL,
-            messages=conversation,
+            knowledge = "\n\n".join(
+                [
+                    f"# {result.note.title}\n{result.note.content}"
+                    for result in context.knowledge
+                ]
+            )
+
+            messages.append(
+                {
+                    "role": "system",
+                    "content": (
+                        "Relevant knowledge from the user's vault:\n\n"
+                        + knowledge
+                    ),
+                }
+            )
+
+        if context.tool_results:
+
+            tool_output = "\n\n".join(
+                [
+                    f"Tool: {tool.get('tool_name', 'Unknown')}\n"
+                    f"Success: {tool.get('success', False)}\n"
+                    f"Output:\n{tool.get('output', '')}"
+                    for tool in context.tool_results
+                ]
+            )
+
+            messages.append(
+                {
+                    "role": "system",
+                    "content": (
+                        "Recent tool execution results:\n\n"
+                        + tool_output
+                    ),
+                }
+            )
+
+        messages.extend(context.conversation)
+
+        messages.append(
+            {
+                "role": "user",
+                "content": context.user_query,
+            }
         )
 
-        return response.choices[0].message.content
+        return messages
+
+    def chat(
+        self,
+        context: PromptContext,
+    ) -> str:
+
+        print("[LLM] Routing request...")
+
+        decision = athena.route(context)
+
+        messages = self._build_messages(context)
+
+        print(
+            f"[Athena] Primary: {decision.primary.value}"
+        )
+
+        for recommendation in decision.recommendations:
+
+            model = recommendation.model.value
+
+            print(f"[LLM] Trying {model}")
+
+            try:
+
+                response = self.client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                )
+
+                print(f"[LLM] Success: {model}")
+
+                return response.choices[0].message.content
+
+            except Exception as exc:
+
+                print(
+                    f"[LLM] Failed: {model}"
+                )
+
+                print(exc)
+
+        raise RuntimeError(
+            "All recommended models failed."
+        )
 
 
 llm = LLMService()

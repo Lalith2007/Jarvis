@@ -1,0 +1,14 @@
+Metadata-Version: 2.4
+Name: jarvis-backend
+Version: 0.1.1
+Summary: Backend for the JARVIS AI Operating System
+Requires-Python: >=3.11
+Requires-Dist: fastapi
+Requires-Dist: uvicorn
+Requires-Dist: openai
+Requires-Dist: python-dotenv
+Requires-Dist: pydantic
+Requires-Dist: httpx
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: ruff; extra == "dev"

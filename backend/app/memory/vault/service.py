@@ -1,19 +1,38 @@
-from pathlib import Path
+from app.memory.vault.indexer import vault_index
+from app.memory.vault.search import vault_search
+from app.memory.vault.models import VaultNote, SearchResult
+from app.query.models import ProcessedQuery
 
-from app.config.settings import settings
-
-
-class MemoryService:
+class VaultService:
     def __init__(self):
-        self.vault = Path(settings.OBSIDIAN_VAULT)
+        self._ready = False
 
-    def read(self, relative_path: str) -> str:
-        file_path = self.vault / relative_path
+    def build(self):
+        if not self._ready:
+            vault_index.build()
+            self._ready = True
 
-        if not file_path.exists():
-            raise FileNotFoundError(f"{relative_path} not found.")
+    def notes(self) -> list[VaultNote]:
+        self.build()
+        return vault_index.all_notes()
+    def search(
+      self,
+      query: ProcessedQuery,
+      limit: int = 5,
+    ) -> list[SearchResult]:
 
-        return file_path.read_text(encoding="utf-8")
+       self.build()
+
+       return vault_search.search(query)[:limit]
+
+    def read(self, path: str) -> VaultNote | None:
+        self.build()
+
+        for note in vault_index.all_notes():
+            if note.path == path:
+                return note
+
+        return None
 
 
-memory = MemoryService()
+vault = VaultService()
