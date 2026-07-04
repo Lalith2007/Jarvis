@@ -4,6 +4,15 @@ from pydantic import BaseModel, Field
 
 
 class ModelType(str, Enum):
+    """
+    Canonical list of models supported by JARVIS.
+
+    Athena reasons only about ModelType values.
+    The LLM layer is responsible for executing them.
+    """
+
+    GLM_52 = "z-ai/glm-5.2"
+
     DEEPSEEK = "deepseek-ai/deepseek-v4-pro"
 
     NEMOTRON = "nvidia/nemotron-3-ultra-550b-a55b"
@@ -19,9 +28,12 @@ class ModelRecommendation(BaseModel):
     """
     Athena's recommendation for a model.
 
-    This is intentionally richer than a simple score so
-    future versions can include latency, cost, confidence,
-    historical success, etc., without changing the API.
+    Future versions may include:
+        • Historical success rate
+        • Runtime latency
+        • Cost estimation
+        • Confidence
+        • Health
     """
 
     model: ModelType
@@ -53,7 +65,7 @@ class RouteDecision(BaseModel):
 
 class ModelInfo(BaseModel):
     """
-    Static information about a model stored in the registry.
+    Static metadata stored in Athena's model registry.
     """
 
     profile: object

@@ -9,6 +9,7 @@ Requires-Dist: openai
 Requires-Dist: python-dotenv
 Requires-Dist: pydantic
 Requires-Dist: httpx
+Requires-Dist: psutil
 Provides-Extra: dev
 Requires-Dist: pytest; extra == "dev"
 Requires-Dist: ruff; extra == "dev"

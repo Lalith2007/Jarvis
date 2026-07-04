@@ -6,10 +6,10 @@ from app.athena.models import ModelType
 
 class ModelProfile(BaseModel):
     """
-    Describes a model's static capabilities.
+    Describes the static capabilities of a model.
 
-    Athena uses these values to determine how well a
-    model matches the detected user intents.
+    Athena uses these values as the foundation for
+    scoring and routing decisions.
     """
 
     model: ModelType
@@ -26,6 +26,41 @@ class ModelProfile(BaseModel):
 
 
 MODEL_PROFILES = {
+
+    ModelType.GLM_52: ModelProfile(
+        model=ModelType.GLM_52,
+
+        strengths=[
+            "agentic reasoning",
+            "software engineering",
+            "planning",
+            "tool usage",
+            "long horizon reasoning",
+            "multi-step execution",
+        ],
+
+        routing_keywords=[],
+
+        capabilities={
+            Capability.CODING: 100,
+            Capability.EXECUTION: 100,
+            Capability.TOOL_USAGE: 100,
+            Capability.PLANNING: 100,
+            Capability.RESEARCH: 95,
+            Capability.DOCUMENTS: 90,
+            Capability.KNOWLEDGE: 95,
+            Capability.BUSINESS: 90,
+            Capability.FINANCE: 90,
+            Capability.TRADING: 85,
+            Capability.MONEY: 90,
+            Capability.WRITING: 90,
+            Capability.CONVERSATION: 90,
+        },
+
+        max_context=1_000_000,
+
+        description="Flagship reasoning and agentic execution model.",
+    ),
 
     ModelType.DEEPSEEK: ModelProfile(
         model=ModelType.DEEPSEEK,

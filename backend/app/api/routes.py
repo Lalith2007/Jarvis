@@ -2,8 +2,10 @@ from fastapi import APIRouter
 
 from app.agents.hermes.service import hermes
 from app.models.chat import ChatRequest, ChatResponse
+from app.system.routes import router as system_router
 
 router = APIRouter()
+router.include_router(system_router)
 
 
 @router.post("/chat", response_model=ChatResponse)

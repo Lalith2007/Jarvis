@@ -4,6 +4,7 @@ openai
 python-dotenv
 pydantic
 httpx
+psutil
 
 [dev]
 pytest
