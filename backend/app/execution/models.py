@@ -142,4 +142,10 @@ class ExecutionContext(BaseModel):
     
     available_capabilities: list[CapabilityType] = Field(default_factory=list)
 
+    runtime_session: Any = None
+    runtime_state: dict = Field(default_factory=dict)
+    runtime_results: dict = Field(default_factory=dict)
+    active_capabilities: list[CapabilityType] = Field(default_factory=list)
+    executed_capabilities: list[CapabilityType] = Field(default_factory=list)
+
     metadata: dict[str, Any] = Field(default_factory=dict)
