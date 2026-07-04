@@ -1,11 +1,12 @@
-fastapi
-uvicorn
-openai
-python-dotenv
-pydantic
-httpx
-psutil
+fastapi==0.116.1
+starlette==0.47.2
+httpx==0.28.1
+uvicorn==0.35.0
+openai>=1.95.0
+python-dotenv>=1.1.1
+pydantic>=2.11.7
+psutil>=7.0.0
 
 [dev]
-pytest
-ruff
+pytest>=8.4.1
+ruff>=0.12.3

@@ -83,6 +83,9 @@ app/models/chat.py
 app/planner/__init__.py
 app/planner/models.py
 app/planner/service.py
+app/providers/__init__.py
+app/providers/models.py
+app/providers/registry.py
 app/query/__init__.py
 app/query/models.py
 app/query/service.py
