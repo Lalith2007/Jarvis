@@ -58,10 +58,14 @@ class MissionPipeline:
         execution: ExecutionContext,
     ) -> None:
         """
-        Placeholder for mission analysis.
+        Analyze mission to determine required capabilities.
         """
-
-        return None
+        from app.capabilities.service import capability_service
+        
+        capability_service.evaluate_mission(
+            mission,
+            execution,
+        )
 
     def route(
         self,

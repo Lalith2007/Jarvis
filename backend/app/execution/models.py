@@ -4,6 +4,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from app.capabilities.models import CapabilityDecision, CapabilityRequirement, CapabilityType
+
 
 class ExecutionStatus(str, Enum):
     """
@@ -131,5 +133,13 @@ class ExecutionContext(BaseModel):
     artifacts: dict[str, Artifact] = Field(default_factory=dict)
 
     variables: dict[str, Any] = Field(default_factory=dict)
+
+    capabilities: list[CapabilityType] = Field(default_factory=list)
+    
+    capability_decision: CapabilityDecision | None = None
+    
+    required_capabilities: list[CapabilityRequirement] = Field(default_factory=list)
+    
+    available_capabilities: list[CapabilityType] = Field(default_factory=list)
 
     metadata: dict[str, Any] = Field(default_factory=dict)
