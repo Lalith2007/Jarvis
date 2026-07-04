@@ -17,7 +17,7 @@ def test_dispatch_success():
     
     session = RuntimeSession()
     
-    result = runtime_dispatcher.dispatch(CapabilityType.FILESYSTEM, session, SecurityAction.READ)
+    result = runtime_dispatcher.dispatch(CapabilityType.FILESYSTEM, session, SecurityAction.READ, provider_name='TestFS')
     assert result.success is True
     assert result.output == "success data"
     

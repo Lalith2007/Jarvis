@@ -8,8 +8,8 @@ class RuntimeService:
     def create_session(self) -> RuntimeSession:
         return runtime_manager.create_session()
         
-    def execute_capability(self, capability: CapabilityType, session: RuntimeSession, action: SecurityAction = SecurityAction.EXECUTE, resource: str | None = None, *args, **kwargs):
-        return runtime_dispatcher.dispatch(capability, session, action, resource, *args, **kwargs)
+    def execute_capability(self, capability: CapabilityType, session: RuntimeSession, action: SecurityAction = SecurityAction.EXECUTE, resource: str | None = None, provider_name: str | None = None, *args, **kwargs):
+        return runtime_dispatcher.dispatch(capability, session, action, resource, provider_name, *args, **kwargs)
         
     def cleanup_session(self, session: RuntimeSession) -> None:
         runtime_manager.cleanup_session(session.id)

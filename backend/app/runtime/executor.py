@@ -8,6 +8,9 @@ class RuntimeExecutor:
         try:
             output = handler(*args, **kwargs)
             duration = (time.time() - start_time) * 1000
+            if isinstance(output, RuntimeResult):
+                output.execution_time_ms = duration
+                return output
             return RuntimeResult(success=True, output=output, execution_time_ms=duration)
         except Exception as e:
             duration = (time.time() - start_time) * 1000

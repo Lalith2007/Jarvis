@@ -16,6 +16,7 @@ class Executor:
     def execute(
         self,
         plan: Plan,
+        execution=None,
     ) -> ToolResult:
 
         if not plan.steps:
@@ -49,7 +50,43 @@ class Executor:
                     arguments=step.arguments,
                 )
 
-                result = tool_registry.execute(call)
+                from app.runtime.service import runtime_service
+                from app.capabilities.models import CapabilityType
+                from app.runtime.models import SecurityAction
+                
+                # Determine capability
+                def get_cap(name):
+                    n = name.lower()
+                    if "file" in n or "dir" in n: return CapabilityType.FILESYSTEM
+                    if "terminal" in n or "shell" in n: return CapabilityType.TERMINAL
+                    if "python" in n: return CapabilityType.PYTHON_RUNTIME
+                    if "browser" in n or "search" in n: return CapabilityType.BROWSER
+                    if "memory" in n: return CapabilityType.MEMORY
+                    return CapabilityType.TOOL_USAGE
+                
+                cap = get_cap(call.name)
+                session = execution.runtime_session if execution else runtime_service.create_session()
+                
+                rt_result = runtime_service.execute_capability(
+                    capability=cap,
+                    session=session,
+                    action=SecurityAction.READ if 'read' in call.name or 'list' in call.name or 'search' in call.name else (SecurityAction.WRITE if 'write' in call.name else SecurityAction.EXECUTE),
+                    resource=call.name,
+                    provider_name=call.name,
+                    call_args=call.arguments
+                )
+                
+                if execution:
+                    if cap not in execution.active_capabilities:
+                        execution.active_capabilities.append(cap)
+                    execution.executed_capabilities.append(cap)
+                    execution.runtime_results[call.name] = rt_result
+                
+                result = ToolResult(
+                    success=rt_result.success,
+                    output=rt_result.output if rt_result.success else str(rt_result.error),
+                    metadata=rt_result.metadata
+                )
 
                 last_tool_result = result
 

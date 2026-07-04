@@ -26,6 +26,9 @@ class MissionPipeline:
             execution,
         )
 
+        from app.runtime.service import runtime_service
+        execution.runtime_session = runtime_service.create_session()
+        
         self.route(
             mission,
             execution,
@@ -37,6 +40,10 @@ class MissionPipeline:
         )
 
         if not plan.use_tool:
+            if execution.runtime_session:
+                from app.runtime.service import runtime_service
+                runtime_service.cleanup_session(execution.runtime_session)
+                execution.runtime_session = None
             return None
 
         result = self.execute(
@@ -50,6 +57,10 @@ class MissionPipeline:
             execution,
         )
 
+        if execution.runtime_session:
+            from app.runtime.service import runtime_service
+            runtime_service.cleanup_session(execution.runtime_session)
+            execution.runtime_session = None
         return result
 
     def analyze(
@@ -103,6 +114,7 @@ class MissionPipeline:
 
         return executor.execute(
             plan,
+            execution,
         )
 
     def reflect(

@@ -36,10 +36,12 @@ class RuntimeRegistry:
                 if p.handler.__name__ != handler_name
             ]
 
-    def get_provider(self, capability: CapabilityType) -> RuntimeProvider | None:
+    def get_provider(self, capability: CapabilityType, provider_name: str | None = None) -> RuntimeProvider | None:
         providers = self._providers.get(capability, [])
         for p in providers:
             if p.metadata.is_healthy:
+                if provider_name and p.metadata.name != provider_name:
+                    continue
                 return p
         return None
 

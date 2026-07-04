@@ -12,6 +12,7 @@ class RuntimeDispatcher:
         session: RuntimeSession, 
         action: SecurityAction = SecurityAction.EXECUTE,
         resource: str | None = None,
+        provider_name: str | None = None,
         *args, 
         **kwargs
     ) -> RuntimeResult:
@@ -20,7 +21,7 @@ class RuntimeDispatcher:
             session.add_result(result)
             return result
             
-        provider = runtime_registry.get_provider(capability)
+        provider = runtime_registry.get_provider(capability, provider_name)
         if not provider:
             result = RuntimeResult(success=False, error=f"No healthy runtime provider found for {capability.value}")
             session.add_result(result)
