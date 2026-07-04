@@ -1,13 +1,15 @@
 from app.agent.models import AgentResult
-from app.executor.service import executor
-from app.planner.service import planner
+from app.mission.controller import mission_controller
 
 
 class Agent:
     """
-    Coordinates planning and execution.
+    Primary entry point into the JARVIS backend.
 
     Hermes communicates only with Agent.
+
+    Agent delegates the complete request lifecycle
+    to the Mission Controller.
     """
 
     def run(
@@ -15,14 +17,14 @@ class Agent:
         query: str,
     ) -> AgentResult:
 
-        plan = planner.plan(query)
+        result = mission_controller.run(
+            query,
+        )
 
-        if not plan.use_tool:
+        if result is None:
             return AgentResult(
                 tool_used=False,
             )
-
-        result = executor.execute(plan)
 
         return AgentResult(
             tool_used=True,
