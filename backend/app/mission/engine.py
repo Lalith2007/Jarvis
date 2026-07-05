@@ -1,12 +1,14 @@
 import time
 from datetime import datetime
 import concurrent.futures
+import threading
 from typing import Any, Dict
 
 from app.mission.graph import MissionGraph, MissionNode, NodeStatus
 from app.mission.capabilities import capability_manager
 from app.mission.events import MissionEvent, MissionEventType
 from app.platform.publisher import EventPublisher
+from app.reflection.orchestrator import reflection_orchestrator
 
 
 class GraphExecutionManager:
@@ -124,7 +126,7 @@ class GraphExecutionManager:
                 session_id=session_id,
                 severity="error",
             )
-            return None
+            final_result = None
         else:
             EventPublisher.publish(
                 subsystem="mission",
@@ -140,11 +142,22 @@ class GraphExecutionManager:
                 dependents.update(deps)
                 
             leaf_nodes = set(graph.nodes.keys()) - dependents
+            final_result = None
             if leaf_nodes:
                 # Return the result of the first leaf node found
                 leaf_node = graph.nodes[list(leaf_nodes)[0]]
-                return leaf_node.result
-            return None
+                final_result = leaf_node.result
+
+        # Trigger reflection asynchronously in a background thread to prevent latency regression
+        # We pass a copy of the mission dict if possible, or just an empty dict for now, 
+        # since real mission object isn't directly inside graph execution manager
+        threading.Thread(
+            target=reflection_orchestrator.reflect,
+            args=(mission_id, session_id or "", {}, graph),
+            daemon=True
+        ).start()
+
+        return final_result
 
     def _queue_node(self, node: MissionNode, mission_id: str, session_id: str | None):
         node.status = NodeStatus.QUEUED
