@@ -72,6 +72,14 @@ class Mission(BaseModel):
 
     id: str
 
+    @property
+    def mission_id(self) -> str:
+        return self.id
+
+    graph_id: str | None = None
+    
+    execution_id: str | None = None
+
     goal: str
 
     status: MissionStatus = MissionStatus.CREATED

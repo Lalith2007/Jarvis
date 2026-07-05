@@ -4,7 +4,8 @@ from app.mission.models import (
     Mission,
     MissionStatus,
 )
-from app.mission.pipeline import mission_pipeline
+from app.mission.builder import mission_graph_builder
+from app.mission.engine import graph_execution_manager
 from app.mission.service import mission_service
 from app.tools.models import ToolResult
 
@@ -39,6 +40,7 @@ class MissionController:
             mission,
             execution.mission_id,
         )
+        mission.execution_id = execution.mission_id
 
         EventPublisher.publish(
             subsystem="mission",
@@ -76,8 +78,18 @@ class MissionController:
         mission_service.update_status(mission, MissionStatus.ANALYZING)
 
         try:
-            result = mission_pipeline.run(mission, execution)
+            from app.runtime.service import runtime_service
+            execution.runtime_session = runtime_service.create_session()
+            
+            graph = mission_graph_builder.build(mission)
+            graph_execution_manager.execute(graph, mission.mission_id, session_id=session_id)
+            executor_node_id = f"node_{graph.graph_id}_4"
+            result = graph.nodes[executor_node_id].result if executor_node_id in graph.nodes else None
         except Exception as exc:
+            if hasattr(execution, "runtime_session") and execution.runtime_session:
+                from app.runtime.service import runtime_service
+                runtime_service.cleanup_session(execution.runtime_session)
+                execution.runtime_session = None
             self.fail(
                 mission,
                 execution,
@@ -86,7 +98,15 @@ class MissionController:
             )
             return None, execution
 
-        response = result.output if result is not None else "Mission completed."
+        # Result might be ToolResult or dict. Handle accordingly for response string.
+        response = "Mission completed."
+        if result is not None:
+            if hasattr(result, "output"):
+                response = result.output
+            elif isinstance(result, dict) and "response" in result:
+                response = result["response"]
+            else:
+                response = str(result)
 
         self.complete(
             mission,
@@ -94,6 +114,11 @@ class MissionController:
             response=response,
             session_id=session_id,
         )
+
+        if hasattr(execution, "runtime_session") and execution.runtime_session:
+            from app.runtime.service import runtime_service
+            runtime_service.cleanup_session(execution.runtime_session)
+            execution.runtime_session = None
 
         return result, execution
 

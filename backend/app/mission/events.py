@@ -27,6 +27,16 @@ class MissionEventType(str, Enum):
 
     CANCELLED = "cancelled"
 
+    MISSION_STARTED = "mission_started"
+    MISSION_COMPLETED = "mission_completed"
+    MISSION_FAILED = "mission_failed"
+
+    NODE_QUEUED = "node_queued"
+    NODE_STARTED = "node_started"
+    NODE_COMPLETED = "node_completed"
+    NODE_FAILED = "node_failed"
+    NODE_CANCELLED = "node_cancelled"
+
 
 class MissionEvent(BaseModel):
     """
