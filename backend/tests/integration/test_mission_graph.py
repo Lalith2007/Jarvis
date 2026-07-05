@@ -6,25 +6,72 @@ import uuid
 import pytest
 
 from app.mission.graph import MissionGraph, MissionNode, NodeStatus, NodeType
-from app.mission.registry import capability_registry
+from app.capabilities.registry import capability_registry
+from app.capabilities.core.base import BaseCapability
+from app.capabilities.core.models import (
+    CapabilityManifest, CapabilityCategory, CapabilityConfig,
+    CapabilityContext, CapabilityDiagnostics, CapabilityResult
+)
 from app.mission.engine import graph_execution_manager
 
 # Register mock capabilities for testing
-def mock_success(node: MissionNode):
-    time.sleep(0.01)
-    return {"status": "success", "val": node.payload.get("val", 0) + 1}
 
-def mock_fail(node: MissionNode):
-    time.sleep(0.01)
-    raise ValueError("Intentional failure")
+class MockSuccessCapability(BaseCapability):
+    def __init__(self):
+        super().__init__(
+            CapabilityManifest(id="test.success", name="Mock Success", version="1.0", author="Test", description="Mock", category=CapabilityCategory.CUSTOM),
+            CapabilityConfig()
+        )
+    def initialize(self, ctx): pass
+    def validate(self, ctx): pass
+    def cleanup(self, ctx): pass
+    def health_check(self): return "healthy"
+    def estimate_cost(self, ctx): return 0.0
+    def estimate_latency(self, ctx): return 0.0
+    
+    def execute(self, ctx: CapabilityContext, diag: CapabilityDiagnostics) -> CapabilityResult:
+        time.sleep(0.01)
+        # get payload from runtime_state
+        val = ctx.runtime_state.get("val", 0) + 1
+        return CapabilityResult(success=True, status="success", result={"val": val})
 
-def mock_timeout(node: MissionNode):
-    time.sleep(0.5)
-    return {"status": "timeout_mocked"}
+class MockFailCapability(BaseCapability):
+    def __init__(self):
+        super().__init__(
+            CapabilityManifest(id="test.fail", name="Mock Fail", version="1.0", author="Test", description="Mock", category=CapabilityCategory.CUSTOM),
+            CapabilityConfig()
+        )
+    def initialize(self, ctx): pass
+    def validate(self, ctx): pass
+    def cleanup(self, ctx): pass
+    def health_check(self): return "healthy"
+    def estimate_cost(self, ctx): return 0.0
+    def estimate_latency(self, ctx): return 0.0
+    
+    def execute(self, ctx: CapabilityContext, diag: CapabilityDiagnostics) -> CapabilityResult:
+        time.sleep(0.01)
+        raise ValueError("Intentional failure")
 
-capability_registry.register("test.success", mock_success)
-capability_registry.register("test.fail", mock_fail)
-capability_registry.register("test.timeout", mock_timeout)
+class MockTimeoutCapability(BaseCapability):
+    def __init__(self):
+        super().__init__(
+            CapabilityManifest(id="test.timeout", name="Mock Timeout", version="1.0", author="Test", description="Mock", category=CapabilityCategory.CUSTOM),
+            CapabilityConfig()
+        )
+    def initialize(self, ctx): pass
+    def validate(self, ctx): pass
+    def cleanup(self, ctx): pass
+    def health_check(self): return "healthy"
+    def estimate_cost(self, ctx): return 0.0
+    def estimate_latency(self, ctx): return 0.0
+    
+    def execute(self, ctx: CapabilityContext, diag: CapabilityDiagnostics) -> CapabilityResult:
+        time.sleep(0.5)
+        return CapabilityResult(success=True, status="timeout_mocked", result={"status": "timeout_mocked"})
+
+capability_registry.register(MockSuccessCapability())
+capability_registry.register(MockFailCapability())
+capability_registry.register(MockTimeoutCapability())
 
 @pytest.fixture
 def base_graph():
@@ -87,14 +134,27 @@ def test_failure_propagation(base_graph):
 def test_retry_policy(base_graph):
     # Register a flakey capability
     attempts = 0
-    def mock_flakey(node):
-        nonlocal attempts
-        attempts += 1
-        if attempts < 3:
-            raise ValueError("Flakey fail")
-        return {"status": "finally_success"}
+    class MockFlakeyCapability(BaseCapability):
+        def __init__(self):
+            super().__init__(
+                CapabilityManifest(id="test.flakey", name="Mock Flakey", version="1.0", author="Test", description="Mock", category=CapabilityCategory.CUSTOM),
+                CapabilityConfig()
+            )
+        def initialize(self, ctx): pass
+        def validate(self, ctx): pass
+        def cleanup(self, ctx): pass
+        def health_check(self): return "healthy"
+        def estimate_cost(self, ctx): return 0.0
+        def estimate_latency(self, ctx): return 0.0
         
-    capability_registry.register("test.flakey", mock_flakey)
+        def execute(self, ctx: CapabilityContext, diag: CapabilityDiagnostics) -> CapabilityResult:
+            nonlocal attempts
+            attempts += 1
+            if attempts < 3:
+                raise ValueError("Flakey fail")
+            return CapabilityResult(success=True, status="finally_success", result={"status": "finally_success"})
+        
+    capability_registry.register(MockFlakeyCapability())
     
     node = MissionNode(id="A", type=NodeType.TOOL, capability="test.flakey", retry_count=3)
     base_graph.nodes = {"A": node}

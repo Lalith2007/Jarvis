@@ -1,104 +1,59 @@
 from typing import Any
 
 from app.mission.graph import MissionNode
-from app.mission.registry import capability_registry
+from app.capabilities.registry import capability_registry
+from app.capabilities.executor import capability_lifecycle
+from app.capabilities.core.models import CapabilityContext
 
 
 class CapabilityManager:
     """
     CapabilityManager acts as the primary facade for executing any
-    capability in the system. It delegates strictly to the CapabilityRegistry,
-    ensuring that the execution engine never knows about specific node types.
+    capability in the system. It constructs the capability context
+    and delegates to the CapabilityRegistry & Lifecycle engine.
     """
     
+    def __init__(self):
+        # Ensure built-ins are registered when the manager is initialized
+        from app.capabilities.builtin import register_builtins
+        register_builtins()
+
     def execute(self, node: MissionNode) -> Any:
-        return capability_registry.execute(node)
+        # Retrieve the abstract capability by node.capability
+        capability = capability_registry.get(node.capability)
+        
+        # Build standard CapabilityContext
+        mission_id = node.metadata.get("mission_id") or node.payload.get("mission_id", "")
+        execution_id = node.metadata.get("execution_id") or node.payload.get("execution_id", "")
+        
+        # We place node payload into runtime_state so capabilities have access to what they need
+        runtime_state = dict(node.payload)
+        # Some legacy capabilities look at context.runtime_state.get("goal") instead of node.payload
+        if "goal" not in runtime_state and node.metadata.get("goal"):
+             runtime_state["goal"] = node.metadata.get("goal")
+
+        raw_budget = node.metadata.get("budget", {})
+        resource_budget = raw_budget if isinstance(raw_budget, dict) else {"latency_budget_ms": raw_budget}
+
+        context = CapabilityContext(
+            mission_id=mission_id,
+            graph_id=node.metadata.get("graph_id", ""),
+            execution_id=execution_id,
+            node_id=node.id,
+            athena_decision=None,
+            memory_plan=None,
+            resource_budget=resource_budget,
+            runtime_state=runtime_state,
+            approved_resources=[]
+        )
+        
+        # Execute the capability strictly through the lifecycle
+        result = capability_lifecycle.execute(capability, context)
+        
+        if result.success:
+            return result.result
+        else:
+            raise Exception(f"Capability {node.capability} failed: {result.errors}")
+
 
 capability_manager = CapabilityManager()
-
-# ---------------------------------------------------------
-# Default Capability Registrations
-# ---------------------------------------------------------
-
-def execute_analyzer(node: MissionNode) -> Any:
-    from app.capabilities.service import capability_service
-    from app.execution.manager import execution_manager
-    from app.mission.service import mission_service
-    
-    mission_id = node.metadata.get("mission_id") or node.payload.get("mission_id")
-    execution_id = node.metadata.get("execution_id") or node.payload.get("execution_id")
-    if not mission_id or not execution_id:
-        return None
-        
-    mission = mission_service.get(mission_id)
-    execution = execution_manager.get(execution_id)
-    
-    if mission and execution:
-        capability_service.evaluate_mission(mission, execution)
-    return None
-
-def execute_router(node: MissionNode) -> Any:
-    from app.athena.router import athena
-    from app.llm.prompts.loader import prompt_loader
-    from app.agents.hermes.models import PromptContext
-    from app.execution.manager import execution_manager
-    
-    payload = node.payload
-    mission_id = payload.get("mission_id")
-    execution_id = payload.get("execution_id")
-    goal = payload.get("goal")
-    
-    context = PromptContext(
-        system_prompt=prompt_loader.load("system.md"),
-        user_query=goal,
-        metadata={
-            "mission_id": mission_id,
-            "stage": "routing",
-        },
-    )
-    
-    decision = athena.route(context)
-    
-    execution = execution_manager.get(execution_id) if execution_id else None
-    if execution:
-        execution.metadata["athena_primary"] = decision.primary.value
-        execution.metadata["athena_reason"] = decision.reason
-        
-    return {
-        "primary_model": decision.primary.value,
-        "reason": decision.reason
-    }
-
-def execute_planner(node: MissionNode) -> Any:
-    from app.planner.service import planner
-    
-    goal = node.payload.get("goal")
-    plan = planner.plan(goal)
-    
-    return plan
-
-def execute_tool(node: MissionNode) -> Any:
-    from app.executor.service import executor
-    from app.execution.manager import execution_manager
-    
-    plan = node.payload.get("planner.plan")
-    execution_id = node.metadata.get("execution_id") or node.payload.get("execution_id")
-    execution = execution_manager.get(execution_id) if execution_id else None
-    
-    print(f"DEBUG execute_tool: plan={plan}, execution_id={execution_id}, execution={execution}")
-    if execution and plan:
-        result = executor.execute(plan, execution)
-        return result
-    return None
-
-def execute_reflector(node: MissionNode) -> Any:
-    # Reflection placeholder
-    return {"status": "reflected"}
-
-
-# Register legacy pipeline capabilities
-capability_registry.register("mission.analyze", execute_analyzer)
-capability_registry.register("athena.route", execute_router)
-capability_registry.register("planner.plan", execute_planner)
-capability_registry.register("executor.execute", execute_tool)
-capability_registry.register("mission.reflect", execute_reflector)
