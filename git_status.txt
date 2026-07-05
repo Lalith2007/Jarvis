@@ -1,0 +1,81 @@
+On branch sprint-7-routing-policy
+Changes not staged for commit:
+  (use "git add/rm <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   backend/app/agent/models.py
+	modified:   backend/app/agent/service.py
+	modified:   backend/app/agents/hermes/context_builder.py
+	modified:   backend/app/agents/hermes/service.py
+	modified:   backend/app/api/routes.py
+	modified:   backend/app/athena/router.py
+	modified:   backend/app/capabilities/analyzer.py
+	modified:   backend/app/capabilities/manager.py
+	modified:   backend/app/executor/service.py
+	modified:   backend/app/llm/orchestrator.py
+	modified:   backend/app/llm/provider.py
+	modified:   backend/app/llm/service.py
+	modified:   backend/app/mcp/manager.py
+	modified:   backend/app/memory/service.py
+	modified:   backend/app/mission/controller.py
+	modified:   backend/app/mission/pipeline.py
+	modified:   backend/app/models/chat.py
+	modified:   backend/app/planner/service.py
+	modified:   backend/app/runtime/manager.py
+	modified:   backend/app/runtime/service.py
+	modified:   backend/app/system/routes.py
+	modified:   backend/pyproject.toml
+	modified:   backend/tests/integration/test_hermes.py
+	modified:   backend/tests/system/test_snapshot.py
+	deleted:    frontend/.gitkeep
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	ai-youtube-shorts-generator/
+	backend/app/api/endpoints/
+	backend/app/mission/context.py
+	backend/app/platform/
+	backend/backend_dep_analyzer.py
+	backend/backend_deps.txt
+	backend/backend_logs.txt
+	backend/backend_test_results.txt
+	backend/profile_system.py
+	backend/test_routes.py
+	backend/test_ws.py
+	backend/tests/integration/test_hermes_pipeline.py
+	backend/tests/integration/test_platform_ws.py.disabled
+	backend/tests/integration/test_sprint11_2.py
+	docs/JARVIS_MASTER_SPEC.md
+	docs/README.md
+	frontend/.gitignore
+	frontend/README.md
+	frontend/electron/
+	frontend/eslint.config.js
+	frontend/frontend_build_results.txt
+	frontend/frontend_dep_analyzer.cjs
+	frontend/frontend_deps.txt
+	frontend/frontend_test_results.txt
+	frontend/index.html
+	frontend/logs.txt
+	frontend/logs2.txt
+	frontend/logs3.txt
+	frontend/logs4.txt
+	frontend/logs5.txt
+	frontend/logs6.txt
+	frontend/package-lock.json
+	frontend/package.json
+	frontend/public/
+	frontend/screenshot.png
+	frontend/scripts/
+	frontend/src/
+	frontend/test_ws.cjs
+	frontend/tsconfig.app.json
+	frontend/tsconfig.json
+	frontend/tsconfig.node.json
+	frontend/vite.config.ts
+	git_diff.txt
+	git_status.txt
+	omnivoice-studio/
+	openshorts/
+	vibevoice/
+
+no changes added to commit (use "git add" and/or "git commit -a")

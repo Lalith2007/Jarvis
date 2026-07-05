@@ -42,6 +42,13 @@ class MessageBuilder:
                     ),
                 }
             )
+        else:
+            messages.append(
+                {
+                    "role": "system",
+                    "content": "You currently have no stored memories or knowledge about the user. If asked about the user's identity, preferences, or past, explicitly state that you have no stored memories."
+                }
+            )
 
         # -----------------------------
         # Tool Results

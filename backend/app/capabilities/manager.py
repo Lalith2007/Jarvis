@@ -24,6 +24,15 @@ class CapabilityManager:
         Run analyzer, consult registry, return decision,
         and store it inside ExecutionContext.
         """
+        from app.platform.publisher import EventPublisher
+
+        EventPublisher.publish(
+            subsystem="capabilities",
+            event_type="CapabilityEvaluationStarted",
+            mission_id=mission.id,
+            execution_id=execution.mission_id
+        )
+
         decision = capability_analyzer.analyze(
             mission,
             execution,
@@ -35,6 +44,14 @@ class CapabilityManager:
         # We store just the CapabilityType for execution capabilities
         execution.capabilities = [req.capability for req in decision.required]
         execution.available_capabilities = capability_registry.get_all()
+
+        EventPublisher.publish(
+            subsystem="capabilities",
+            event_type="CapabilityEvaluationCompleted",
+            mission_id=mission.id,
+            execution_id=execution.mission_id,
+            payload={"decision": decision.model_dump() if hasattr(decision, "model_dump") else {}}
+        )
 
         return decision
 

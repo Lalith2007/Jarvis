@@ -14,6 +14,13 @@ class MCPManager:
         client = MCPClient(name, endpoint)
         self._clients[name] = client
         client.connect()
+        
+        from app.platform.publisher import EventPublisher
+        EventPublisher.publish(
+            subsystem="mcp",
+            event_type="MCPConnected",
+            payload={"name": name, "endpoint": endpoint, "capabilities": capabilities}
+        )
 
     def get_client(self, name: str) -> MCPClient | None:
         return self._clients.get(name)
@@ -23,5 +30,11 @@ class MCPManager:
         client = self._clients.pop(name, None)
         if client:
             client.disconnect()
+            from app.platform.publisher import EventPublisher
+            EventPublisher.publish(
+                subsystem="mcp",
+                event_type="MCPDisconnected",
+                payload={"name": name}
+            )
 
 mcp_manager = MCPManager()

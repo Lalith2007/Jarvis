@@ -17,21 +17,36 @@ class MissionController:
 
     The controller owns the lifecycle.
 
-    It does not perform planning or execution itself.
+    It delegates planning and execution to the Pipeline.
+    It does not perform them itself.
     """
 
     def create(
         self,
         goal: str,
+        session_id: str | None = None,
     ) -> tuple[Mission, ExecutionContext]:
 
-        mission = mission_service.create(goal)
+        from app.platform.publisher import EventPublisher
 
+        mission = mission_service.create(goal)
         execution = execution_manager.create(goal)
+
+        if session_id:
+            execution.metadata["session_id"] = session_id
 
         mission_service.add_execution(
             mission,
             execution.mission_id,
+        )
+
+        EventPublisher.publish(
+            subsystem="mission",
+            event_type="MissionCreated",
+            mission_id=mission.id,
+            session_id=session_id,
+            execution_id=execution.mission_id,
+            payload={"goal": goal},
         )
 
         return mission, execution
@@ -39,116 +54,73 @@ class MissionController:
     def run(
         self,
         goal: str,
-    ) -> ToolResult | None:
+        session_id: str | None = None,
+    ) -> tuple[ToolResult | None, ExecutionContext]:
         """
-        Executes an entire mission.
+        Full mission lifecycle: create → analyze → route → plan → execute → complete.
         """
 
-        mission, execution = self.create(
-            goal,
+        from app.platform.publisher import EventPublisher
+
+        mission, execution = self.create(goal, session_id=session_id)
+
+        EventPublisher.publish(
+            subsystem="mission",
+            event_type="MissionStarted",
+            mission_id=mission.id,
+            session_id=session_id,
+            execution_id=execution.mission_id,
         )
 
-        self.analyzing(
-            mission,
-        )
+        # Transition to ANALYZING before the pipeline starts
+        mission_service.update_status(mission, MissionStatus.ANALYZING)
 
-        result = mission_pipeline.run(
-            mission,
-            execution,
-        )
-
-        if result is None:
-
-            self.complete(
+        try:
+            result = mission_pipeline.run(mission, execution)
+        except Exception as exc:
+            self.fail(
                 mission,
                 execution,
-                response="Mission completed.",
+                response=f"Pipeline error: {exc}",
+                session_id=session_id,
             )
+            return None, execution
 
-            return None
+        response = result.output if result is not None else "Mission completed."
 
         self.complete(
             mission,
             execution,
-            response=result.output,
+            response=response,
+            session_id=session_id,
         )
 
-        return result
-
-    def analyzing(
-        self,
-        mission: Mission,
-    ) -> None:
-
-        mission_service.update_status(
-            mission,
-            MissionStatus.ANALYZING,
-        )
-
-    def planning(
-        self,
-        mission: Mission,
-    ) -> None:
-
-        mission_service.update_status(
-            mission,
-            MissionStatus.PLANNING,
-        )
-
-    def executing(
-        self,
-        mission: Mission,
-        execution: ExecutionContext,
-    ) -> None:
-
-        mission_service.update_status(
-            mission,
-            MissionStatus.EXECUTING,
-        )
-
-        execution_manager.start(
-            execution,
-        )
-
-    def waiting(
-        self,
-        mission: Mission,
-        execution: ExecutionContext,
-    ) -> None:
-
-        mission_service.update_status(
-            mission,
-            MissionStatus.WAITING,
-        )
-
-        execution_manager.waiting(
-            execution,
-        )
-
-    def reflecting(
-        self,
-        mission: Mission,
-    ) -> None:
-
-        mission_service.update_status(
-            mission,
-            MissionStatus.REFLECTING,
-        )
+        return result, execution
 
     def complete(
         self,
         mission: Mission,
         execution: ExecutionContext,
         response: str,
+        session_id: str | None = None,
     ) -> None:
 
-        execution_manager.complete(
-            execution,
-        )
+        from app.platform.publisher import EventPublisher
+
+        execution_manager.complete(execution)
 
         mission_service.complete(
             mission,
             response=response,
+        )
+
+        EventPublisher.publish(
+            subsystem="mission",
+            event_type="MissionCompleted",
+            mission_id=mission.id,
+            session_id=session_id,
+            execution_id=execution.mission_id,
+            payload={"response": response[:200]},
         )
 
     def fail(
@@ -156,15 +128,26 @@ class MissionController:
         mission: Mission,
         execution: ExecutionContext,
         response: str,
+        session_id: str | None = None,
     ) -> None:
 
-        execution_manager.fail(
-            execution,
-        )
+        from app.platform.publisher import EventPublisher
+
+        execution_manager.fail(execution)
 
         mission_service.fail(
             mission,
             response=response,
+        )
+
+        EventPublisher.publish(
+            subsystem="mission",
+            event_type="MissionFailed",
+            mission_id=mission.id,
+            session_id=session_id,
+            execution_id=execution.mission_id,
+            severity="error",
+            payload={"response": response},
         )
 
 

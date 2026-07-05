@@ -20,6 +20,14 @@ class Planner:
         user_query: str,
     ) -> Plan:
 
+        from app.platform.publisher import EventPublisher
+
+        EventPublisher.publish(
+            subsystem="planner",
+            event_type="PlannerStarted",
+            payload={"query": user_query}
+        )
+
         query = user_query.lower()
 
         words = set(
@@ -149,7 +157,7 @@ class Planner:
             "LLM response required."
         )
 
-        return Plan(
+        plan = Plan(
             use_tool=tool_name is not None,
             tool_name=tool_name,
             arguments=arguments,
@@ -163,6 +171,14 @@ class Planner:
                 for step in steps
             ),
         )
+
+        EventPublisher.publish(
+            subsystem="planner",
+            event_type="PlannerCompleted",
+            payload={"plan": plan.model_dump() if hasattr(plan, "model_dump") else {}}
+        )
+
+        return plan
 
 
 planner = Planner()

@@ -1,0 +1,26 @@
+ backend/app/agent/models.py                  |   7 +-
+ backend/app/agent/service.py                 |   8 +-
+ backend/app/agents/hermes/context_builder.py |  61 +++++++-
+ backend/app/agents/hermes/service.py         | 183 +++++++++++++++++++-----
+ backend/app/api/routes.py                    | 137 +++++++++++++++++-
+ backend/app/athena/router.py                 |  11 +-
+ backend/app/capabilities/analyzer.py         |   2 +-
+ backend/app/capabilities/manager.py          |  17 +++
+ backend/app/executor/service.py              |  26 +++-
+ backend/app/llm/orchestrator.py              |  47 +++++--
+ backend/app/llm/provider.py                  |  22 +++
+ backend/app/llm/service.py                   |  94 +++++++++++--
+ backend/app/mcp/manager.py                   |  13 ++
+ backend/app/memory/service.py                |  11 +-
+ backend/app/mission/controller.py            | 153 +++++++++-----------
+ backend/app/mission/pipeline.py              | 200 ++++++++++++++++++++-------
+ backend/app/models/chat.py                   |   3 +
+ backend/app/planner/service.py               |  18 ++-
+ backend/app/runtime/manager.py               |  12 ++
+ backend/app/runtime/service.py               |  14 +-
+ backend/app/system/routes.py                 |   8 ++
+ backend/pyproject.toml                       |   1 +
+ backend/tests/integration/test_hermes.py     |   7 +-
+ backend/tests/system/test_snapshot.py        |   2 +-
+ frontend/.gitkeep                            |   0
+ 25 files changed, 839 insertions(+), 218 deletions(-)

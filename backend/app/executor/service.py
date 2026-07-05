@@ -19,6 +19,15 @@ class Executor:
         execution=None,
     ) -> ToolResult:
 
+        from app.platform.publisher import EventPublisher
+
+        EventPublisher.publish(
+            subsystem="executor",
+            event_type="ExecutorStarted",
+            execution_id=execution.mission_id if execution else None,
+            payload={"plan": plan.model_dump() if hasattr(plan, "model_dump") else {}}
+        )
+
         if not plan.steps:
             return ToolResult(
                 success=False,
@@ -140,12 +149,27 @@ class Executor:
                 )
 
         if last_tool_result is not None:
+            EventPublisher.publish(
+                subsystem="executor",
+                event_type="ExecutorCompleted",
+                execution_id=execution.mission_id if execution else None,
+                payload={"result": last_tool_result.model_dump() if hasattr(last_tool_result, "model_dump") else {}}
+            )
             return last_tool_result
 
-        return ToolResult(
+        result = ToolResult(
             success=True,
             output="Execution completed successfully.",
         )
+        
+        EventPublisher.publish(
+            subsystem="executor",
+            event_type="ExecutorCompleted",
+            execution_id=execution.mission_id if execution else None,
+            payload={"result": result.model_dump() if hasattr(result, "model_dump") else {}}
+        )
+
+        return result
 
 
 executor = Executor()

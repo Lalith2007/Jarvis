@@ -36,10 +36,19 @@ class MemoryService:
         query: ProcessedQuery,
         limit: int = 5,
     ):
-        return self.vault.search(
+        results = self.vault.search(
             query=query,
             limit=limit,
         )
+        
+        from app.platform.publisher import EventPublisher
+        EventPublisher.publish(
+            subsystem="memory",
+            event_type="MemoryRetrieved",
+            payload={"query": query.model_dump() if hasattr(query, "model_dump") else {}, "results_count": len(results)}
+        )
+        
+        return results
 
 
 memory = MemoryService()

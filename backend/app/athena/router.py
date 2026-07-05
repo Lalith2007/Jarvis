@@ -37,11 +37,20 @@ class Athena:
 
         recommendations = scorer.score(context)
 
-        return RouteDecision(
+        decision = RouteDecision(
             primary=recommendations[0].model,
             recommendations=recommendations,
             reason="Highest recommendation score.",
         )
+        
+        from app.platform.publisher import EventPublisher
+        EventPublisher.publish(
+            subsystem="athena",
+            event_type="AthenaDecision",
+            payload={"decision": decision.model_dump() if hasattr(decision, "model_dump") else {}}
+        )
+
+        return decision
 
 
 athena = Athena()

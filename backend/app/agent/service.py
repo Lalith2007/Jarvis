@@ -15,20 +15,26 @@ class Agent:
     def run(
         self,
         query: str,
+        session_id: str | None = None,
     ) -> AgentResult:
 
-        result = mission_controller.run(
+        result, execution = mission_controller.run(
             query,
+            session_id=session_id,
         )
 
         if result is None:
             return AgentResult(
                 tool_used=False,
+                metadata=execution.metadata,
+                mission_id=execution.mission_id,
             )
 
         return AgentResult(
             tool_used=True,
             tool_result=result,
+            metadata=execution.metadata,
+            mission_id=execution.mission_id,
         )
 
 

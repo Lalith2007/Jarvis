@@ -38,5 +38,27 @@ class LLMProvider:
 
         return content or ""
 
+    def stream(
+        self,
+        *,
+        model: str,
+        messages: list[dict],
+    ):
+        """
+        Stream tokens from the LLM provider.
+
+        Yields str chunks as they arrive.
+        """
+        stream = self.client.chat.completions.create(
+            model=model,
+            messages=messages,
+            stream=True,
+        )
+
+        for chunk in stream:
+            delta = chunk.choices[0].delta.content if chunk.choices else None
+            if delta:
+                yield delta
+
 
 llm_provider = LLMProvider()

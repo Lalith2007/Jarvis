@@ -6,7 +6,7 @@ from main import app
 def test_system_snapshot_returns_live_host_metrics():
     client = TestClient(app)
 
-    response = client.get("/system/snapshot")
+    response = client.get("/api/system/snapshot")
 
     assert response.status_code == 200
     payload = response.json()
