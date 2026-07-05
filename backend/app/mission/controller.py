@@ -83,9 +83,17 @@ class MissionController:
             
             graph = mission_graph_builder.build(mission)
             graph_execution_manager.execute(graph, mission.mission_id, session_id=session_id)
-            executor_node_id = f"node_{graph.graph_id}_4"
-            result = graph.nodes[executor_node_id].result if executor_node_id in graph.nodes else None
+            
+            result = None
+            for node in graph.nodes.values():
+                if node.capability == "executor.execute" and node.result is not None:
+                    result = node.result
+                    break
         except Exception as exc:
+            print(f"DEBUG controller pipeline error: {exc}")
+            import traceback
+            traceback.print_exc()
+            
             if hasattr(execution, "runtime_session") and execution.runtime_session:
                 from app.runtime.service import runtime_service
                 runtime_service.cleanup_session(execution.runtime_session)

@@ -18,6 +18,9 @@ class Settings:
 
     # Obsidian
     OBSIDIAN_VAULT = os.getenv("OBSIDIAN_VAULT")
+    
+    # Athena
+    ATHENA_CONFIDENCE_THRESHOLD = float(os.getenv("ATHENA_CONFIDENCE_THRESHOLD", "0.80"))
 
 
 settings = Settings()

@@ -1,12 +1,17 @@
 import uuid
+from typing import List
+
+from app.agents.hermes.models import PromptContext
+from app.athena.engines.orchestrator import athena
 from app.mission.graph import MissionGraph, MissionNode, NodeStatus, NodeType
 from app.mission.models import Mission
+from app.athena.models import AthenaDecision
+
 
 class MissionGraphBuilder:
     """
-    Constructs the Mission Execution Graph from a given Mission.
-    For Sprint 12.1, it builds the legacy sequence as a generic DAG:
-    Analyzer -> Router -> Planner -> Executor -> Reflector.
+    Constructs the Mission Execution Graph dynamically from a given Mission,
+    driven strictly by the AthenaDecision.
     """
     
     def build(self, mission: Mission) -> MissionGraph:
@@ -19,58 +24,73 @@ class MissionGraphBuilder:
             "goal": mission.goal,
         }
         
-        # Node 1: Analyzer
-        analyzer = MissionNode(
-            id=f"node_{graph_id}_1",
-            type=NodeType.RUNTIME,
-            capability="mission.analyze",
-            payload=base_payload,
+        # 1. Invoke Athena Orcherstrator for Strategic Planning
+        context = PromptContext(
+            mission_id=mission.mission_id,
+            goal=mission.goal,
+            system_prompt="You are Athena Intelligence Engine.",
+            user_query=mission.goal,
         )
+        decision: AthenaDecision = athena.analyze(context)
         
-        # Node 2: Router (depends on analyzer)
-        router = MissionNode(
-            id=f"node_{graph_id}_2",
-            type=NodeType.AGGREGATOR,
-            capability="athena.route",
-            payload=base_payload,
-            dependencies=[analyzer.id],
-        )
+        # 2. Enforce Policy Engine Decision
+        # If policy rejected it, recommended_capabilities is empty, so graph will be empty or fail.
         
-        # Node 3: Planner (depends on router)
-        planner = MissionNode(
-            id=f"node_{graph_id}_3",
-            type=NodeType.PLANNER,
-            capability="planner.plan",
-            payload=base_payload,
-            dependencies=[router.id],
-        )
+        nodes = {}
+        node_counter = 1
         
-        # Node 4: Executor (depends on planner)
-        executor = MissionNode(
-            id=f"node_{graph_id}_4",
-            type=NodeType.TOOL,
-            capability="executor.execute",
-            payload=base_payload,
-            dependencies=[planner.id],
-        )
+        def create_node(capability: str, node_type: NodeType, deps: List[str], metadata: dict = None) -> MissionNode:
+            nonlocal node_counter
+            node_id = f"node_{graph_id}_{node_counter}"
+            node_counter += 1
+            node = MissionNode(
+                id=node_id,
+                type=node_type,
+                capability=capability,
+                payload=base_payload.copy(),
+                dependencies=deps,
+                metadata=metadata or {}
+            )
+            nodes[node_id] = node
+            return node
+            
+        last_deps = []
         
-        # Node 5: Reflector (depends on executor)
-        reflector = MissionNode(
-            id=f"node_{graph_id}_5",
-            type=NodeType.AGGREGATOR,
-            capability="mission.reflect",
-            payload=base_payload,
-            dependencies=[executor.id],
-        )
+        # Add pre-planning nodes (e.g. Memory Retrieval)
+        if decision.requires_memory and decision.memory_plan.retrieval_required:
+            mem_node = create_node("memory.retrieve", NodeType.MEMORY, [])
+            last_deps = [mem_node.id]
+            
+        # Add Capability Nodes (Planning, Execution)
+        for cap in decision.recommended_capabilities:
+            node_type = NodeType.TOOL
+            if cap.capability == "planner.plan":
+                node_type = NodeType.PLANNER
+                
+            node = create_node(
+                capability=cap.capability, 
+                node_type=node_type, 
+                deps=last_deps.copy(),
+                metadata={"budget": decision.latency_budget_ms}
+            )
+            
+            # If sequential, this node becomes the dependency for the next
+            if not decision.requires_parallel_execution or cap.capability == "planner.plan":
+                last_deps = [node.id]
+            else:
+                # If parallel, they all depend on the previous stage, and the next stage depends on all of them
+                # (Assuming simple fork-join for now)
+                last_deps.append(node.id)
+                
+        # We need a predictable executor node ID for controller.py backwards compatibility.
+        # controller.py expects the final result to be from `f"node_{graph_id}_4"` usually.
+        # Wait, if we change node IDs, we must change controller.py to find the right node!
         
-        nodes = {
-            analyzer.id: analyzer,
-            router.id: router,
-            planner.id: planner,
-            executor.id: executor,
-            reflector.id: reflector
-        }
-        
+        # Add Reflection Node
+        if decision.requires_reflection:
+            reflect_node = create_node("mission.reflect", NodeType.AGGREGATOR, last_deps.copy())
+            last_deps = [reflect_node.id]
+            
         return MissionGraph(
             graph_id=graph_id,
             nodes=nodes,
