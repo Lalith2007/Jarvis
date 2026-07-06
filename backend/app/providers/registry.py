@@ -173,20 +173,26 @@ class ProviderRegistry:
             timeout=timeout,
             max_retries=0,
         )
+        import time
+
         results: dict[str, bool] = {}
         for model in self._models.values():
             if not model.enabled:
                 results[model.id] = False
                 continue
+            t0 = time.perf_counter()
             try:
-                client.chat.completions.create(
+                resp = client.chat.completions.create(
                     model=model.id,
                     messages=[{"role": "user", "content": "ping"}],
                     max_tokens=1,
                 )
-                model.healthy = True
+                # A model that responds but returns empty choices is unhealthy.
+                model.healthy = bool(resp.choices)
+                model.avg_latency_ms = round((time.perf_counter() - t0) * 1000, 1)
             except Exception as exc:  # noqa: BLE001 — any failure => unhealthy
                 model.healthy = False
+                model.avg_latency_ms = None
                 logger.warning("Model %s failed health probe: %s", model.id, exc)
             results[model.id] = model.healthy
         return results

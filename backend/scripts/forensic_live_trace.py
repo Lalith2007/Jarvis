@@ -169,9 +169,13 @@ except Exception as e:
 
 print("[trace] instrumentation installed")
 
+# ── Health-aware routing (Sprint 13.0): probe once so ranking prefers the
+# fastest responsive model. All models stay registered/routable. ────────────
+print("[trace] probing model health/latency...")
+_health = provider_registry.probe_health(timeout=10.0)
+print("[trace] health:", {k: (round(m.avg_latency_ms) if m.avg_latency_ms else v) for k, m, v in [(x.id, x, x.healthy) for x in provider_registry.all()]})
+
 # ── Ground-truth registries ─────────────────────────────────────────────────
-# All models stay routable; grounding queries route to the ranked primary
-# (minimax for simple queries), which responds. glm/deepseek are untouched.
 REG_MODELS = {m.id for m in provider_registry.all()}
 REG_MODEL_NAMES = {m.display_name for m in provider_registry.all()}
 REG_PROVIDERS = {m.provider.value for m in provider_registry.all()}

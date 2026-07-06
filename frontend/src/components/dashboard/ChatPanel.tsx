@@ -1,5 +1,7 @@
 import { ArrowUp, MessageSquareText, Mic, Zap } from "lucide-react";
 import { type FormEvent, useEffect, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { sendChatMessageStream } from "../../services/jarvis-api";
 import { useJarvisStore } from "../../stores/use-jarvis-store";
 import { usePlatformEvents } from "../../hooks/usePlatformEvents";
@@ -136,12 +138,18 @@ export function ChatPanel({ full = false }: { full?: boolean }) {
             </div>
             <div>
               <span>{message.role === "user" ? "You" : "JARVIS"}</span>
-              <p>
-                {message.content}
-                {message.status === "sending" && (
-                  <span className="typing-cursor" aria-hidden="true" />
-                )}
-              </p>
+              {message.role === "assistant" ? (
+                <div className="chat-markdown">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {message.content}
+                  </ReactMarkdown>
+                  {message.status === "sending" && (
+                    <span className="typing-cursor" aria-hidden="true" />
+                  )}
+                </div>
+              ) : (
+                <p>{message.content}</p>
+              )}
             </div>
           </article>
         ))}

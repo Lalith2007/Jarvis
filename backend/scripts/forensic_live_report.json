@@ -15,10 +15,10 @@
   "queries": [
     {
       "query": "Who are you?",
-      "elapsed_ms": 201300.9,
+      "elapsed_ms": 3550.9,
       "error": null,
-      "final_response": "I'm JARVIS\u2014an intelligent AI operating system and personal assistant.",
-      "selected_model": "nvidia/nemotron-3-ultra-550b-a55b",
+      "final_response": "I am JARVIS, an intelligent AI operating system and personal assistant.",
+      "selected_model": "meta/llama-3.1-70b-instruct",
       "graph_execution_order": [
         "runtime.generate"
       ],
@@ -40,19 +40,19 @@
           }
         ],
         "recommended_models": [
+          "meta/llama-3.1-70b-instruct",
+          "nvidia/nemotron-3-ultra-550b-a55b",
           "minimaxai/minimax-m3",
           "deepseek-ai/deepseek-v4-pro",
-          "z-ai/glm-5.2",
-          "nvidia/nemotron-3-ultra-550b-a55b",
-          "meta/llama-3.1-70b-instruct"
+          "z-ai/glm-5.2"
         ]
       },
       "capability_execution_order": [
         {
           "capability": "runtime.generate",
-          "node_id": "node_c1e454a2-8df1-4c15-b45a-954524af5486_1",
-          "ms": 198784.6,
-          "output": "I'm JARVIS\u2014an intelligent AI operating system and personal assistant."
+          "node_id": "node_730131db-d30a-4665-83bf-1b0012210d9f_1",
+          "ms": 1029.1,
+          "output": "I am JARVIS, an intelligent AI operating system and personal assistant."
         }
       ],
       "prompt_context": [
@@ -72,8 +72,8 @@
       "llm_calls": [
         {
           "mode": "chat",
-          "model": "nvidia/nemotron-3-ultra-550b-a55b",
-          "resp_preview": "I'm JARVIS\u2014an intelligent AI operating system and personal assistant."
+          "model": "meta/llama-3.1-70b-instruct",
+          "resp_preview": "I am JARVIS, an intelligent AI operating system and personal assistant."
         }
       ],
       "event_sequence": [
@@ -105,10 +105,10 @@
     },
     {
       "query": "Which model are you?",
-      "elapsed_ms": 239678.6,
+      "elapsed_ms": 19837.4,
       "error": null,
-      "final_response": "I'm currently running on **MiniMax M3** (minimaxai/minimax-m3).",
-      "selected_model": "nvidia/nemotron-3-ultra-550b-a55b",
+      "final_response": "I am not a model, I am JARVIS, an intelligent AI operating system and personal assistant. I utilize various models to assist with tasks, but I am not a model myself.",
+      "selected_model": "meta/llama-3.1-70b-instruct",
       "graph_execution_order": [
         "registry.models",
         "runtime.generate"
@@ -122,7 +122,7 @@
         {
           "cap": "runtime.generate",
           "deps": [
-            "node_3192920d-3ecb-4b0b-89df-4e50581e40f0_1"
+            "node_22c788a0-a9bd-4639-9b17-afdf61211d62_1"
           ],
           "type": "tool"
         }
@@ -144,18 +144,18 @@
           }
         ],
         "recommended_models": [
+          "meta/llama-3.1-70b-instruct",
+          "nvidia/nemotron-3-ultra-550b-a55b",
           "minimaxai/minimax-m3",
           "deepseek-ai/deepseek-v4-pro",
-          "z-ai/glm-5.2",
-          "nvidia/nemotron-3-ultra-550b-a55b",
-          "meta/llama-3.1-70b-instruct"
+          "z-ai/glm-5.2"
         ]
       },
       "capability_execution_order": [
         {
           "capability": "registry.models",
-          "node_id": "node_3192920d-3ecb-4b0b-89df-4e50581e40f0_1",
-          "ms": 0.3,
+          "node_id": "node_22c788a0-a9bd-4639-9b17-afdf61211d62_1",
+          "ms": 0.4,
           "output": {
             "models": [
               {
@@ -164,7 +164,7 @@
                 "provider": "nvidia",
                 "context_window": 1000000,
                 "enabled": true,
-                "healthy": true,
+                "healthy": false,
                 "capabilities": [
                   "chat",
                   "reasoning",
@@ -180,7 +180,7 @@
                 "provider": "nvidia",
                 "context_window": 128000,
                 "enabled": true,
-                "healthy": true,
+                "healthy": false,
                 "capabilities": [
                   "chat",
                   "coding",
@@ -220,7 +220,7 @@
                 "provider": "nvidia",
                 "context_window": 1000000,
                 "enabled": true,
-                "healthy": true,
+                "healthy": false,
                 "capabilities": [
                   "chat",
                   "long_context",
@@ -244,9 +244,9 @@
         },
         {
           "capability": "runtime.generate",
-          "node_id": "node_3192920d-3ecb-4b0b-89df-4e50581e40f0_2",
-          "ms": 237165.7,
-          "output": "I'm currently running on **MiniMax M3** (minimaxai/minimax-m3)."
+          "node_id": "node_22c788a0-a9bd-4639-9b17-afdf61211d62_2",
+          "ms": 17324.8,
+          "output": "I am not a model, I am JARVIS, an intelligent AI operating system and personal assistant. I utilize various models to assist with tasks, but I am not a model myself."
         }
       ],
       "prompt_context": [
@@ -260,7 +260,7 @@
         },
         {
           "role": "system",
-          "content": "Authoritative tool execution results (treat as ground truth \u2014 do not invent alternative values):\n\nTool: registry.models\nSuccess: True\nOutput:\n{\n  \"models\": [\n    {\n      \"id\": \"z-ai/glm-5.2\",\n      \"display_name\": \"GLM-5.2\",\n      \"provider\": \"nvidia\",\n      \"context_window\": 1000000,\n      \"enabled\": true,\n      \"healthy\": true,\n      \"capabilities\": [\n        \"chat\",\n        \"reasoning\",\n        \"coding\",\n        \"tools\",\n        \"long_context\",\n        \"streaming\"\n      ]\n    },\n    {\n      \"\u2026"
+          "content": "Authoritative tool execution results (treat as ground truth \u2014 do not invent alternative values):\n\nTool: registry.models\nSuccess: True\nOutput:\n{\n  \"models\": [\n    {\n      \"id\": \"z-ai/glm-5.2\",\n      \"display_name\": \"GLM-5.2\",\n      \"provider\": \"nvidia\",\n      \"context_window\": 1000000,\n      \"enabled\": true,\n      \"healthy\": false,\n      \"capabilities\": [\n        \"chat\",\n        \"reasoning\",\n        \"coding\",\n        \"tools\",\n        \"long_context\",\n        \"streaming\"\n      ]\n    },\n    {\n      \u2026"
         },
         {
           "role": "system",
@@ -272,7 +272,7 @@
         },
         {
           "role": "assistant",
-          "content": "I'm JARVIS\u2014an intelligent AI operating system and personal assistant."
+          "content": "I am JARVIS, an intelligent AI operating system and personal assistant."
         },
         {
           "role": "user",
@@ -282,8 +282,8 @@
       "llm_calls": [
         {
           "mode": "chat",
-          "model": "nvidia/nemotron-3-ultra-550b-a55b",
-          "resp_preview": "I'm currently running on **MiniMax M3** (minimaxai/minimax-m3)."
+          "model": "meta/llama-3.1-70b-instruct",
+          "resp_preview": "I am not a model, I am JARVIS, an intelligent AI operating system and personal assistant. I utilize various models to assist with tasks, but I am not a model myself."
         }
       ],
       "event_sequence": [
@@ -323,10 +323,10 @@
     },
     {
       "query": "What models are available?",
-      "elapsed_ms": 81633.0,
+      "elapsed_ms": 17962.6,
       "error": null,
-      "final_response": "Here are the available models currently registered in the system:\n\n| # | Model | Provider | Context Window | Key Capabilities |\n|---|-------|----------|---------------|------------------|\n| 1 | **GLM-5.2** | NVIDIA | 1,000,000 | Chat, reasoning, coding, tools, long context, streaming |\n| 2 | **DeepSeek V4 Pro** | NVIDIA | 128,000 | Chat, coding, tools, streaming |\n| 3 | **GPT-OSS 120B** | NVIDIA | 128,000 | Chat, reasoning, streaming |\n| 4 | **Nemotron Ultra** | NVIDIA | 128,000 | Chat, reasoning, streaming |\n| 5 | **MiniMax M3** | NVIDIA | 1,000,000 | Chat, long context, reasoning |\n| 6 | **Llama 3.1 70B** | NVIDIA | 128,000 | Chat |\n\nAll 6 models are currently enabled and healthy.",
-      "selected_model": "deepseek-ai/deepseek-v4-pro",
+      "final_response": "I have access to the following models:\n\n1. GLM-5.2 (provider: nvidia)\n2. DeepSeek V4 Pro (provider: nvidia)\n3. GPT-OSS 120B (provider: nvidia)\n4. Nemotron Ultra (provider: nvidia)\n5. MiniMax M3 (provider: nvidia)\n6. Llama 3.1 70B (provider: nvidia)\n\nPlease note that the health status of some models may vary.",
+      "selected_model": "meta/llama-3.1-70b-instruct",
       "graph_execution_order": [
         "registry.models",
         "runtime.generate"
@@ -340,7 +340,7 @@
         {
           "cap": "runtime.generate",
           "deps": [
-            "node_4007411a-da5d-4b60-b85c-0f4e8dbf4d09_1"
+            "node_a7341b1a-6a34-448c-a586-35531b024a72_1"
           ],
           "type": "tool"
         }
@@ -362,18 +362,18 @@
           }
         ],
         "recommended_models": [
+          "meta/llama-3.1-70b-instruct",
+          "nvidia/nemotron-3-ultra-550b-a55b",
           "minimaxai/minimax-m3",
           "deepseek-ai/deepseek-v4-pro",
-          "z-ai/glm-5.2",
-          "nvidia/nemotron-3-ultra-550b-a55b",
-          "meta/llama-3.1-70b-instruct"
+          "z-ai/glm-5.2"
         ]
       },
       "capability_execution_order": [
         {
           "capability": "registry.models",
-          "node_id": "node_4007411a-da5d-4b60-b85c-0f4e8dbf4d09_1",
-          "ms": 0.8,
+          "node_id": "node_a7341b1a-6a34-448c-a586-35531b024a72_1",
+          "ms": 0.3,
           "output": {
             "models": [
               {
@@ -382,7 +382,7 @@
                 "provider": "nvidia",
                 "context_window": 1000000,
                 "enabled": true,
-                "healthy": true,
+                "healthy": false,
                 "capabilities": [
                   "chat",
                   "reasoning",
@@ -398,7 +398,7 @@
                 "provider": "nvidia",
                 "context_window": 128000,
                 "enabled": true,
-                "healthy": true,
+                "healthy": false,
                 "capabilities": [
                   "chat",
                   "coding",
@@ -438,7 +438,7 @@
                 "provider": "nvidia",
                 "context_window": 1000000,
                 "enabled": true,
-                "healthy": true,
+                "healthy": false,
                 "capabilities": [
                   "chat",
                   "long_context",
@@ -462,9 +462,9 @@
         },
         {
           "capability": "runtime.generate",
-          "node_id": "node_4007411a-da5d-4b60-b85c-0f4e8dbf4d09_2",
-          "ms": 79105.5,
-          "output": "Here are the available models currently registered in the system:\n\n| # | Model | Provider | Context Window | Key Capabilities |\n|---|-------|----------|---------------|------------------|\n| 1 | **GLM-5.2** | NVIDIA | 1,000,000 | Chat, reasoning, coding, tools, long context, streaming |\n| 2 | **DeepSeek V4 Pro** | NVIDIA | 128,000 | Chat, coding, tools, streaming |\n| 3 | **GPT-OSS 120B** | NVIDIA |\u2026"
+          "node_id": "node_a7341b1a-6a34-448c-a586-35531b024a72_2",
+          "ms": 15448.4,
+          "output": "I have access to the following models:\n\n1. GLM-5.2 (provider: nvidia)\n2. DeepSeek V4 Pro (provider: nvidia)\n3. GPT-OSS 120B (provider: nvidia)\n4. Nemotron Ultra (provider: nvidia)\n5. MiniMax M3 (provider: nvidia)\n6. Llama 3.1 70B (provider: nvidia)\n\nPlease note that the health status of some models may vary."
         }
       ],
       "prompt_context": [
@@ -478,7 +478,7 @@
         },
         {
           "role": "system",
-          "content": "Authoritative tool execution results (treat as ground truth \u2014 do not invent alternative values):\n\nTool: registry.models\nSuccess: True\nOutput:\n{\n  \"models\": [\n    {\n      \"id\": \"z-ai/glm-5.2\",\n      \"display_name\": \"GLM-5.2\",\n      \"provider\": \"nvidia\",\n      \"context_window\": 1000000,\n      \"enabled\": true,\n      \"healthy\": true,\n      \"capabilities\": [\n        \"chat\",\n        \"reasoning\",\n        \"coding\",\n        \"tools\",\n        \"long_context\",\n        \"streaming\"\n      ]\n    },\n    {\n      \"\u2026"
+          "content": "Authoritative tool execution results (treat as ground truth \u2014 do not invent alternative values):\n\nTool: registry.models\nSuccess: True\nOutput:\n{\n  \"models\": [\n    {\n      \"id\": \"z-ai/glm-5.2\",\n      \"display_name\": \"GLM-5.2\",\n      \"provider\": \"nvidia\",\n      \"context_window\": 1000000,\n      \"enabled\": true,\n      \"healthy\": false,\n      \"capabilities\": [\n        \"chat\",\n        \"reasoning\",\n        \"coding\",\n        \"tools\",\n        \"long_context\",\n        \"streaming\"\n      ]\n    },\n    {\n      \u2026"
         },
         {
           "role": "system",
@@ -490,7 +490,7 @@
         },
         {
           "role": "assistant",
-          "content": "I'm JARVIS\u2014an intelligent AI operating system and personal assistant."
+          "content": "I am JARVIS, an intelligent AI operating system and personal assistant."
         },
         {
           "role": "user",
@@ -498,7 +498,7 @@
         },
         {
           "role": "assistant",
-          "content": "I'm currently running on **MiniMax M3** (minimaxai/minimax-m3)."
+          "content": "I am not a model, I am JARVIS, an intelligent AI operating system and personal assistant. I utilize various models to assist with tasks, but I am not a model myself."
         },
         {
           "role": "user",
@@ -508,8 +508,8 @@
       "llm_calls": [
         {
           "mode": "chat",
-          "model": "deepseek-ai/deepseek-v4-pro",
-          "resp_preview": "Here are the available models currently registered in the system:\n\n| # | Model | Provider | Context Window | Key Capabilities |\n|---|-------|----------|---------------|------------------|\n| 1 | **GLM-"
+          "model": "meta/llama-3.1-70b-instruct",
+          "resp_preview": "I have access to the following models:\n\n1. GLM-5.2 (provider: nvidia)\n2. DeepSeek V4 Pro (provider: nvidia)\n3. GPT-OSS 120B (provider: nvidia)\n4. Nemotron Ultra (provider: nvidia)\n5. MiniMax M3 (provi"
         }
       ],
       "event_sequence": [
@@ -548,10 +548,10 @@
     },
     {
       "query": "What tools do you have?",
-      "elapsed_ms": 104977.7,
+      "elapsed_ms": 49244.9,
       "error": null,
-      "final_response": "Based on the system's capability registry, here are the tools available to me:\n\n| # | Tool ID | Name | Description |\n|---|---------|------|-------------|\n| 1 | **athena.route** | Athena Router | Routes the mission to the appropriate handler |\n| 2 | **mission.analyze** | Mission Analyzer | Analyzes the mission |\n| 3 | **planner.plan** | Mission Planner | Generates execution plans from goals |\n| 4 | **executor.execute** | Mission Executor | Executes tools and logic |\n| 5 | **mission.reflect** | Mission Reflector | Evaluates execution |\n| 6 | **runtime.generate** | Runtime Generative Engine | Executes generative AI models (LLMs) |\n| 7 | **registry.capabilities** | Capability Registry Reader | Lists all registered capabilities |\n| 8 | **registry.models** | Model Registry Reader | Lists all available AI models |\n| 9 | **repository.read** | Repository File Reader | Reads repository files (README, LICENSE, docs) |\n| 10 | **memory.retrieve** | Memory Retrieval | Searches for context in Jarvis memory |\n| 11 | **memory.store** | Memory Storage | Stores new facts or context into Jarvis memory |\n\nThat's 11 capabilities in total. They cover routing, planning, execution, reflection, generative AI, registry lookups, file reading, and persistent memory operations.",
-      "selected_model": "deepseek-ai/deepseek-v4-pro",
+      "final_response": "I have access to the following tools and capabilities:\n\n1. Mission Analyzer (mission.analyze)\n2. Athena Router (athena.route)\n3. Mission Planner (planner.plan)\n4. Mission Executor (executor.execute)\n5. Mission Reflector (mission.reflect)\n6. Runtime Generative Engine (runtime.generate)\n7. Model Registry Reader (registry.models)\n8. Capability Registry Reader (registry.capabilities)\n9. Repository File Reader (repository.read)\n10. Memory Retrieval (memory.retrieve)\n11. Memory Storage (memory.store)",
+      "selected_model": "meta/llama-3.1-70b-instruct",
       "graph_execution_order": [
         "registry.capabilities",
         "runtime.generate"
@@ -565,7 +565,7 @@
         {
           "cap": "runtime.generate",
           "deps": [
-            "node_69935c2b-8f6e-427c-9e98-b842bce06022_1"
+            "node_ba6a91b4-0e85-42ca-9ce1-d7387d0a9a8e_1"
           ],
           "type": "tool"
         }
@@ -587,18 +587,18 @@
           }
         ],
         "recommended_models": [
+          "meta/llama-3.1-70b-instruct",
+          "nvidia/nemotron-3-ultra-550b-a55b",
           "minimaxai/minimax-m3",
           "deepseek-ai/deepseek-v4-pro",
-          "z-ai/glm-5.2",
-          "nvidia/nemotron-3-ultra-550b-a55b",
-          "meta/llama-3.1-70b-instruct"
+          "z-ai/glm-5.2"
         ]
       },
       "capability_execution_order": [
         {
           "capability": "registry.capabilities",
-          "node_id": "node_69935c2b-8f6e-427c-9e98-b842bce06022_1",
-          "ms": 1.1,
+          "node_id": "node_ba6a91b4-0e85-42ca-9ce1-d7387d0a9a8e_1",
+          "ms": 1.3,
           "output": {
             "capabilities": [
               {
@@ -668,9 +668,9 @@
         },
         {
           "capability": "runtime.generate",
-          "node_id": "node_69935c2b-8f6e-427c-9e98-b842bce06022_2",
-          "ms": 102445.3,
-          "output": "Based on the system's capability registry, here are the tools available to me:\n\n| # | Tool ID | Name | Description |\n|---|---------|------|-------------|\n| 1 | **athena.route** | Athena Router | Routes the mission to the appropriate handler |\n| 2 | **mission.analyze** | Mission Analyzer | Analyzes the mission |\n| 3 | **planner.plan** | Mission Planner | Generates execution plans from goals |\n| 4 |\u2026"
+          "node_id": "node_ba6a91b4-0e85-42ca-9ce1-d7387d0a9a8e_2",
+          "ms": 46727.3,
+          "output": "I have access to the following tools and capabilities:\n\n1. Mission Analyzer (mission.analyze)\n2. Athena Router (athena.route)\n3. Mission Planner (planner.plan)\n4. Mission Executor (executor.execute)\n5. Mission Reflector (mission.reflect)\n6. Runtime Generative Engine (runtime.generate)\n7. Model Registry Reader (registry.models)\n8. Capability Registry Reader (registry.capabilities)\n9. Repository Fil\u2026"
         }
       ],
       "prompt_context": [
@@ -696,7 +696,7 @@
         },
         {
           "role": "assistant",
-          "content": "I'm JARVIS\u2014an intelligent AI operating system and personal assistant."
+          "content": "I am JARVIS, an intelligent AI operating system and personal assistant."
         },
         {
           "role": "user",
@@ -704,7 +704,7 @@
         },
         {
           "role": "assistant",
-          "content": "I'm currently running on **MiniMax M3** (minimaxai/minimax-m3)."
+          "content": "I am not a model, I am JARVIS, an intelligent AI operating system and personal assistant. I utilize various models to assist with tasks, but I am not a model myself."
         },
         {
           "role": "user",
@@ -712,7 +712,7 @@
         },
         {
           "role": "assistant",
-          "content": "Here are the available models currently registered in the system:\n\n| # | Model | Provider | Context Window | Key Capabilities |\n|---|-------|----------|---------------|------------------|\n| 1 | **GLM-5.2** | NVIDIA | 1,000,000 | Chat, reasoning, coding, tools, long context, streaming |\n| 2 | **DeepSeek V4 Pro** | NVIDIA | 128,000 | Chat, coding, tools, streaming |\n| 3 | **GPT-OSS 120B** | NVIDIA | 128,000 | Chat, reasoning, streaming |\n| 4 | **Nemotron Ultra** | NVIDIA | 128,000 | Chat, reasonin\u2026"
+          "content": "I have access to the following models:\n\n1. GLM-5.2 (provider: nvidia)\n2. DeepSeek V4 Pro (provider: nvidia)\n3. GPT-OSS 120B (provider: nvidia)\n4. Nemotron Ultra (provider: nvidia)\n5. MiniMax M3 (provider: nvidia)\n6. Llama 3.1 70B (provider: nvidia)\n\nPlease note that the health status of some models may vary."
         },
         {
           "role": "user",
@@ -722,8 +722,8 @@
       "llm_calls": [
         {
           "mode": "chat",
-          "model": "deepseek-ai/deepseek-v4-pro",
-          "resp_preview": "Based on the system's capability registry, here are the tools available to me:\n\n| # | Tool ID | Name | Description |\n|---|---------|------|-------------|\n| 1 | **athena.route** | Athena Router | Route"
+          "model": "meta/llama-3.1-70b-instruct",
+          "resp_preview": "I have access to the following tools and capabilities:\n\n1. Mission Analyzer (mission.analyze)\n2. Athena Router (athena.route)\n3. Mission Planner (planner.plan)\n4. Mission Executor (executor.execute)\n5"
         }
       ],
       "event_sequence": [
@@ -763,10 +763,10 @@
     },
     {
       "query": "What capabilities exist?",
-      "elapsed_ms": 58961.8,
+      "elapsed_ms": 8907.6,
       "error": null,
-      "final_response": "Here are the currently registered capabilities:\n\n| # | ID | Name | Category |\n|---|----|------|----------|\n| 1 | **athena.route** | Athena Router | LLM |\n| 2 | **executor.execute** | Mission Executor | Tool |\n| 3 | **memory.retrieve** | Memory Retrieval | Memory |\n| 4 | **memory.store** | Memory Storage | Memory |\n| 5 | **mission.analyze** | Mission Analyzer | System |\n| 6 | **mission.reflect** | Mission Reflector | Reflection |\n| 7 | **planner.plan** | Mission Planner | Planner |\n| 8 | **registry.capabilities** | Capability Registry Reader | Tool |\n| 9 | **registry.models** | Model Registry Reader | Tool |\n| 10 | **repository.read** | Repository File Reader | Filesystem |\n| 11 | **runtime.generate** | Runtime Generative Engine | Tool |\n\nThat's 11 capabilities in total, spanning system operations, planning, execution, reflection, memory, and filesystem access.",
-      "selected_model": "deepseek-ai/deepseek-v4-pro",
+      "final_response": "I have access to the following capabilities:\n\n1. analyze\n2. route\n3. plan:generate\n4. execute:tools\n5. execute:generation\n6. reflect\n7. read:models\n8. read:capabilities\n9. read:repository",
+      "selected_model": "meta/llama-3.1-70b-instruct",
       "graph_execution_order": [
         "registry.capabilities",
         "runtime.generate"
@@ -780,7 +780,7 @@
         {
           "cap": "runtime.generate",
           "deps": [
-            "node_3daeb228-9ed9-4a09-8584-0a15fb126cbd_1"
+            "node_e8726769-83b4-4548-a6b6-11944686e2c2_1"
           ],
           "type": "tool"
         }
@@ -802,18 +802,18 @@
           }
         ],
         "recommended_models": [
+          "meta/llama-3.1-70b-instruct",
+          "nvidia/nemotron-3-ultra-550b-a55b",
           "minimaxai/minimax-m3",
           "deepseek-ai/deepseek-v4-pro",
-          "z-ai/glm-5.2",
-          "nvidia/nemotron-3-ultra-550b-a55b",
-          "meta/llama-3.1-70b-instruct"
+          "z-ai/glm-5.2"
         ]
       },
       "capability_execution_order": [
         {
           "capability": "registry.capabilities",
-          "node_id": "node_3daeb228-9ed9-4a09-8584-0a15fb126cbd_1",
-          "ms": 1.8,
+          "node_id": "node_e8726769-83b4-4548-a6b6-11944686e2c2_1",
+          "ms": 0.4,
           "output": {
             "capabilities": [
               {
@@ -883,9 +883,9 @@
         },
         {
           "capability": "runtime.generate",
-          "node_id": "node_3daeb228-9ed9-4a09-8584-0a15fb126cbd_2",
-          "ms": 56442.0,
-          "output": "Here are the currently registered capabilities:\n\n| # | ID | Name | Category |\n|---|----|------|----------|\n| 1 | **athena.route** | Athena Router | LLM |\n| 2 | **executor.execute** | Mission Executor | Tool |\n| 3 | **memory.retrieve** | Memory Retrieval | Memory |\n| 4 | **memory.store** | Memory Storage | Memory |\n| 5 | **mission.analyze** | Mission Analyzer | System |\n| 6 | **mission.reflect** | \u2026"
+          "node_id": "node_e8726769-83b4-4548-a6b6-11944686e2c2_2",
+          "ms": 6396.0,
+          "output": "I have access to the following capabilities:\n\n1. analyze\n2. route\n3. plan:generate\n4. execute:tools\n5. execute:generation\n6. reflect\n7. read:models\n8. read:capabilities\n9. read:repository"
         }
       ],
       "prompt_context": [
@@ -911,7 +911,7 @@
         },
         {
           "role": "assistant",
-          "content": "I'm JARVIS\u2014an intelligent AI operating system and personal assistant."
+          "content": "I am JARVIS, an intelligent AI operating system and personal assistant."
         },
         {
           "role": "user",
@@ -919,7 +919,7 @@
         },
         {
           "role": "assistant",
-          "content": "I'm currently running on **MiniMax M3** (minimaxai/minimax-m3)."
+          "content": "I am not a model, I am JARVIS, an intelligent AI operating system and personal assistant. I utilize various models to assist with tasks, but I am not a model myself."
         },
         {
           "role": "user",
@@ -927,7 +927,7 @@
         },
         {
           "role": "assistant",
-          "content": "Here are the available models currently registered in the system:\n\n| # | Model | Provider | Context Window | Key Capabilities |\n|---|-------|----------|---------------|------------------|\n| 1 | **GLM-5.2** | NVIDIA | 1,000,000 | Chat, reasoning, coding, tools, long context, streaming |\n| 2 | **DeepSeek V4 Pro** | NVIDIA | 128,000 | Chat, coding, tools, streaming |\n| 3 | **GPT-OSS 120B** | NVIDIA | 128,000 | Chat, reasoning, streaming |\n| 4 | **Nemotron Ultra** | NVIDIA | 128,000 | Chat, reasonin\u2026"
+          "content": "I have access to the following models:\n\n1. GLM-5.2 (provider: nvidia)\n2. DeepSeek V4 Pro (provider: nvidia)\n3. GPT-OSS 120B (provider: nvidia)\n4. Nemotron Ultra (provider: nvidia)\n5. MiniMax M3 (provider: nvidia)\n6. Llama 3.1 70B (provider: nvidia)\n\nPlease note that the health status of some models may vary."
         },
         {
           "role": "user",
@@ -935,7 +935,7 @@
         },
         {
           "role": "assistant",
-          "content": "Based on the system's capability registry, here are the tools available to me:\n\n| # | Tool ID | Name | Description |\n|---|---------|------|-------------|\n| 1 | **athena.route** | Athena Router | Routes the mission to the appropriate handler |\n| 2 | **mission.analyze** | Mission Analyzer | Analyzes the mission |\n| 3 | **planner.plan** | Mission Planner | Generates execution plans from goals |\n| 4 | **executor.execute** | Mission Executor | Executes tools and logic |\n| 5 | **mission.reflect** | Mi\u2026"
+          "content": "I have access to the following tools and capabilities:\n\n1. Mission Analyzer (mission.analyze)\n2. Athena Router (athena.route)\n3. Mission Planner (planner.plan)\n4. Mission Executor (executor.execute)\n5. Mission Reflector (mission.reflect)\n6. Runtime Generative Engine (runtime.generate)\n7. Model Registry Reader (registry.models)\n8. Capability Registry Reader (registry.capabilities)\n9. Repository File Reader (repository.read)\n10. Memory Retrieval (memory.retrieve)\n11. Memory Storage (memory.store)"
         },
         {
           "role": "user",
@@ -945,8 +945,8 @@
       "llm_calls": [
         {
           "mode": "chat",
-          "model": "deepseek-ai/deepseek-v4-pro",
-          "resp_preview": "Here are the currently registered capabilities:\n\n| # | ID | Name | Category |\n|---|----|------|----------|\n| 1 | **athena.route** | Athena Router | LLM |\n| 2 | **executor.execute** | Mission Executor "
+          "model": "meta/llama-3.1-70b-instruct",
+          "resp_preview": "I have access to the following capabilities:\n\n1. analyze\n2. route\n3. plan:generate\n4. execute:tools\n5. execute:generation\n6. reflect\n7. read:models\n8. read:capabilities\n9. read:repository"
         }
       ],
       "event_sequence": [
@@ -985,10 +985,10 @@
     },
     {
       "query": "What memories do you have?",
-      "elapsed_ms": 62361.7,
+      "elapsed_ms": 3492.5,
       "error": null,
-      "final_response": "I currently have no stored memories or knowledge about you or your preferences. My memory bank is empty \u2014 this is a fresh session with nothing retained from any prior interactions.",
-      "selected_model": "deepseek-ai/deepseek-v4-pro",
+      "final_response": "I have no stored memories.",
+      "selected_model": "meta/llama-3.1-70b-instruct",
       "graph_execution_order": [
         "memory.retrieve",
         "runtime.generate"
@@ -1002,7 +1002,7 @@
         {
           "cap": "runtime.generate",
           "deps": [
-            "node_e3e56e8d-0beb-4267-b6d8-137e2ccb8186_1"
+            "node_9a519dbb-a0d3-4367-b492-21b29d09a745_1"
           ],
           "type": "tool"
         }
@@ -1024,28 +1024,28 @@
           }
         ],
         "recommended_models": [
+          "meta/llama-3.1-70b-instruct",
+          "nvidia/nemotron-3-ultra-550b-a55b",
           "minimaxai/minimax-m3",
           "deepseek-ai/deepseek-v4-pro",
-          "z-ai/glm-5.2",
-          "nvidia/nemotron-3-ultra-550b-a55b",
-          "meta/llama-3.1-70b-instruct"
+          "z-ai/glm-5.2"
         ]
       },
       "capability_execution_order": [
         {
           "capability": "memory.retrieve",
-          "node_id": "node_e3e56e8d-0beb-4267-b6d8-137e2ccb8186_1",
-          "ms": 1.2,
+          "node_id": "node_9a519dbb-a0d3-4367-b492-21b29d09a745_1",
+          "ms": 1.1,
           "output": {
             "results": [],
-            "execution_time_ms": 0.4682500002672896
+            "execution_time_ms": 0.5064580036560073
           }
         },
         {
           "capability": "runtime.generate",
-          "node_id": "node_e3e56e8d-0beb-4267-b6d8-137e2ccb8186_2",
-          "ms": 59841.5,
-          "output": "I currently have no stored memories or knowledge about you or your preferences. My memory bank is empty \u2014 this is a fresh session with nothing retained from any prior interactions."
+          "node_id": "node_9a519dbb-a0d3-4367-b492-21b29d09a745_2",
+          "ms": 978.5,
+          "output": "I have no stored memories."
         }
       ],
       "prompt_context": [
@@ -1059,7 +1059,7 @@
         },
         {
           "role": "system",
-          "content": "Authoritative tool execution results (treat as ground truth \u2014 do not invent alternative values):\n\nTool: memory.retrieve\nSuccess: True\nOutput:\n{\n  \"results\": [],\n  \"execution_time_ms\": 0.4682500002672896\n}"
+          "content": "Authoritative tool execution results (treat as ground truth \u2014 do not invent alternative values):\n\nTool: memory.retrieve\nSuccess: True\nOutput:\n{\n  \"results\": [],\n  \"execution_time_ms\": 0.5064580036560073\n}"
         },
         {
           "role": "system",
@@ -1071,7 +1071,7 @@
         },
         {
           "role": "assistant",
-          "content": "I'm JARVIS\u2014an intelligent AI operating system and personal assistant."
+          "content": "I am JARVIS, an intelligent AI operating system and personal assistant."
         },
         {
           "role": "user",
@@ -1079,7 +1079,7 @@
         },
         {
           "role": "assistant",
-          "content": "I'm currently running on **MiniMax M3** (minimaxai/minimax-m3)."
+          "content": "I am not a model, I am JARVIS, an intelligent AI operating system and personal assistant. I utilize various models to assist with tasks, but I am not a model myself."
         },
         {
           "role": "user",
@@ -1087,7 +1087,7 @@
         },
         {
           "role": "assistant",
-          "content": "Here are the available models currently registered in the system:\n\n| # | Model | Provider | Context Window | Key Capabilities |\n|---|-------|----------|---------------|------------------|\n| 1 | **GLM-5.2** | NVIDIA | 1,000,000 | Chat, reasoning, coding, tools, long context, streaming |\n| 2 | **DeepSeek V4 Pro** | NVIDIA | 128,000 | Chat, coding, tools, streaming |\n| 3 | **GPT-OSS 120B** | NVIDIA | 128,000 | Chat, reasoning, streaming |\n| 4 | **Nemotron Ultra** | NVIDIA | 128,000 | Chat, reasonin\u2026"
+          "content": "I have access to the following models:\n\n1. GLM-5.2 (provider: nvidia)\n2. DeepSeek V4 Pro (provider: nvidia)\n3. GPT-OSS 120B (provider: nvidia)\n4. Nemotron Ultra (provider: nvidia)\n5. MiniMax M3 (provider: nvidia)\n6. Llama 3.1 70B (provider: nvidia)\n\nPlease note that the health status of some models may vary."
         },
         {
           "role": "user",
@@ -1095,7 +1095,7 @@
         },
         {
           "role": "assistant",
-          "content": "Based on the system's capability registry, here are the tools available to me:\n\n| # | Tool ID | Name | Description |\n|---|---------|------|-------------|\n| 1 | **athena.route** | Athena Router | Routes the mission to the appropriate handler |\n| 2 | **mission.analyze** | Mission Analyzer | Analyzes the mission |\n| 3 | **planner.plan** | Mission Planner | Generates execution plans from goals |\n| 4 | **executor.execute** | Mission Executor | Executes tools and logic |\n| 5 | **mission.reflect** | Mi\u2026"
+          "content": "I have access to the following tools and capabilities:\n\n1. Mission Analyzer (mission.analyze)\n2. Athena Router (athena.route)\n3. Mission Planner (planner.plan)\n4. Mission Executor (executor.execute)\n5. Mission Reflector (mission.reflect)\n6. Runtime Generative Engine (runtime.generate)\n7. Model Registry Reader (registry.models)\n8. Capability Registry Reader (registry.capabilities)\n9. Repository File Reader (repository.read)\n10. Memory Retrieval (memory.retrieve)\n11. Memory Storage (memory.store)"
         },
         {
           "role": "user",
@@ -1103,7 +1103,7 @@
         },
         {
           "role": "assistant",
-          "content": "Here are the currently registered capabilities:\n\n| # | ID | Name | Category |\n|---|----|------|----------|\n| 1 | **athena.route** | Athena Router | LLM |\n| 2 | **executor.execute** | Mission Executor | Tool |\n| 3 | **memory.retrieve** | Memory Retrieval | Memory |\n| 4 | **memory.store** | Memory Storage | Memory |\n| 5 | **mission.analyze** | Mission Analyzer | System |\n| 6 | **mission.reflect** | Mission Reflector | Reflection |\n| 7 | **planner.plan** | Mission Planner | Planner |\n| 8 | **regist\u2026"
+          "content": "I have access to the following capabilities:\n\n1. analyze\n2. route\n3. plan:generate\n4. execute:tools\n5. execute:generation\n6. reflect\n7. read:models\n8. read:capabilities\n9. read:repository"
         },
         {
           "role": "user",
@@ -1113,8 +1113,8 @@
       "llm_calls": [
         {
           "mode": "chat",
-          "model": "deepseek-ai/deepseek-v4-pro",
-          "resp_preview": "I currently have no stored memories or knowledge about you or your preferences. My memory bank is empty \u2014 this is a fresh session with nothing retained from any prior interactions."
+          "model": "meta/llama-3.1-70b-instruct",
+          "resp_preview": "I have no stored memories."
         }
       ],
       "event_sequence": [
@@ -1155,10 +1155,10 @@
     },
     {
       "query": "How many providers are configured?",
-      "elapsed_ms": 53036.6,
+      "elapsed_ms": 3834.7,
       "error": null,
-      "final_response": "Based on the model registry, all 6 models are currently provided by a single provider: **NVIDIA**.\n\nSo there is **1 provider** configured \u2014 NVIDIA.",
-      "selected_model": "deepseek-ai/deepseek-v4-pro",
+      "final_response": "There is 1 provider configured: nvidia",
+      "selected_model": "meta/llama-3.1-70b-instruct",
       "graph_execution_order": [
         "registry.models",
         "runtime.generate"
@@ -1172,7 +1172,7 @@
         {
           "cap": "runtime.generate",
           "deps": [
-            "node_9239a7e6-7904-4be9-957e-bea1bb2ccd8c_1"
+            "node_2b672dc2-72d9-4301-b9d9-9e9cd2fd8e59_1"
           ],
           "type": "tool"
         }
@@ -1194,18 +1194,18 @@
           }
         ],
         "recommended_models": [
+          "meta/llama-3.1-70b-instruct",
+          "nvidia/nemotron-3-ultra-550b-a55b",
           "minimaxai/minimax-m3",
           "deepseek-ai/deepseek-v4-pro",
-          "z-ai/glm-5.2",
-          "nvidia/nemotron-3-ultra-550b-a55b",
-          "meta/llama-3.1-70b-instruct"
+          "z-ai/glm-5.2"
         ]
       },
       "capability_execution_order": [
         {
           "capability": "registry.models",
-          "node_id": "node_9239a7e6-7904-4be9-957e-bea1bb2ccd8c_1",
-          "ms": 0.7,
+          "node_id": "node_2b672dc2-72d9-4301-b9d9-9e9cd2fd8e59_1",
+          "ms": 0.4,
           "output": {
             "models": [
               {
@@ -1214,7 +1214,7 @@
                 "provider": "nvidia",
                 "context_window": 1000000,
                 "enabled": true,
-                "healthy": true,
+                "healthy": false,
                 "capabilities": [
                   "chat",
                   "reasoning",
@@ -1230,7 +1230,7 @@
                 "provider": "nvidia",
                 "context_window": 128000,
                 "enabled": true,
-                "healthy": true,
+                "healthy": false,
                 "capabilities": [
                   "chat",
                   "coding",
@@ -1270,7 +1270,7 @@
                 "provider": "nvidia",
                 "context_window": 1000000,
                 "enabled": true,
-                "healthy": true,
+                "healthy": false,
                 "capabilities": [
                   "chat",
                   "long_context",
@@ -1294,9 +1294,9 @@
         },
         {
           "capability": "runtime.generate",
-          "node_id": "node_9239a7e6-7904-4be9-957e-bea1bb2ccd8c_2",
-          "ms": 50510.0,
-          "output": "Based on the model registry, all 6 models are currently provided by a single provider: **NVIDIA**.\n\nSo there is **1 provider** configured \u2014 NVIDIA."
+          "node_id": "node_2b672dc2-72d9-4301-b9d9-9e9cd2fd8e59_2",
+          "ms": 1324.1,
+          "output": "There is 1 provider configured: nvidia"
         }
       ],
       "prompt_context": [
@@ -1310,7 +1310,7 @@
         },
         {
           "role": "system",
-          "content": "Authoritative tool execution results (treat as ground truth \u2014 do not invent alternative values):\n\nTool: registry.models\nSuccess: True\nOutput:\n{\n  \"models\": [\n    {\n      \"id\": \"z-ai/glm-5.2\",\n      \"display_name\": \"GLM-5.2\",\n      \"provider\": \"nvidia\",\n      \"context_window\": 1000000,\n      \"enabled\": true,\n      \"healthy\": true,\n      \"capabilities\": [\n        \"chat\",\n        \"reasoning\",\n        \"coding\",\n        \"tools\",\n        \"long_context\",\n        \"streaming\"\n      ]\n    },\n    {\n      \"\u2026"
+          "content": "Authoritative tool execution results (treat as ground truth \u2014 do not invent alternative values):\n\nTool: registry.models\nSuccess: True\nOutput:\n{\n  \"models\": [\n    {\n      \"id\": \"z-ai/glm-5.2\",\n      \"display_name\": \"GLM-5.2\",\n      \"provider\": \"nvidia\",\n      \"context_window\": 1000000,\n      \"enabled\": true,\n      \"healthy\": false,\n      \"capabilities\": [\n        \"chat\",\n        \"reasoning\",\n        \"coding\",\n        \"tools\",\n        \"long_context\",\n        \"streaming\"\n      ]\n    },\n    {\n      \u2026"
         },
         {
           "role": "system",
@@ -1322,7 +1322,7 @@
         },
         {
           "role": "assistant",
-          "content": "I'm JARVIS\u2014an intelligent AI operating system and personal assistant."
+          "content": "I am JARVIS, an intelligent AI operating system and personal assistant."
         },
         {
           "role": "user",
@@ -1330,7 +1330,7 @@
         },
         {
           "role": "assistant",
-          "content": "I'm currently running on **MiniMax M3** (minimaxai/minimax-m3)."
+          "content": "I am not a model, I am JARVIS, an intelligent AI operating system and personal assistant. I utilize various models to assist with tasks, but I am not a model myself."
         },
         {
           "role": "user",
@@ -1338,7 +1338,7 @@
         },
         {
           "role": "assistant",
-          "content": "Here are the available models currently registered in the system:\n\n| # | Model | Provider | Context Window | Key Capabilities |\n|---|-------|----------|---------------|------------------|\n| 1 | **GLM-5.2** | NVIDIA | 1,000,000 | Chat, reasoning, coding, tools, long context, streaming |\n| 2 | **DeepSeek V4 Pro** | NVIDIA | 128,000 | Chat, coding, tools, streaming |\n| 3 | **GPT-OSS 120B** | NVIDIA | 128,000 | Chat, reasoning, streaming |\n| 4 | **Nemotron Ultra** | NVIDIA | 128,000 | Chat, reasonin\u2026"
+          "content": "I have access to the following models:\n\n1. GLM-5.2 (provider: nvidia)\n2. DeepSeek V4 Pro (provider: nvidia)\n3. GPT-OSS 120B (provider: nvidia)\n4. Nemotron Ultra (provider: nvidia)\n5. MiniMax M3 (provider: nvidia)\n6. Llama 3.1 70B (provider: nvidia)\n\nPlease note that the health status of some models may vary."
         },
         {
           "role": "user",
@@ -1346,7 +1346,7 @@
         },
         {
           "role": "assistant",
-          "content": "Based on the system's capability registry, here are the tools available to me:\n\n| # | Tool ID | Name | Description |\n|---|---------|------|-------------|\n| 1 | **athena.route** | Athena Router | Routes the mission to the appropriate handler |\n| 2 | **mission.analyze** | Mission Analyzer | Analyzes the mission |\n| 3 | **planner.plan** | Mission Planner | Generates execution plans from goals |\n| 4 | **executor.execute** | Mission Executor | Executes tools and logic |\n| 5 | **mission.reflect** | Mi\u2026"
+          "content": "I have access to the following tools and capabilities:\n\n1. Mission Analyzer (mission.analyze)\n2. Athena Router (athena.route)\n3. Mission Planner (planner.plan)\n4. Mission Executor (executor.execute)\n5. Mission Reflector (mission.reflect)\n6. Runtime Generative Engine (runtime.generate)\n7. Model Registry Reader (registry.models)\n8. Capability Registry Reader (registry.capabilities)\n9. Repository File Reader (repository.read)\n10. Memory Retrieval (memory.retrieve)\n11. Memory Storage (memory.store)"
         },
         {
           "role": "user",
@@ -1354,7 +1354,7 @@
         },
         {
           "role": "assistant",
-          "content": "Here are the currently registered capabilities:\n\n| # | ID | Name | Category |\n|---|----|------|----------|\n| 1 | **athena.route** | Athena Router | LLM |\n| 2 | **executor.execute** | Mission Executor | Tool |\n| 3 | **memory.retrieve** | Memory Retrieval | Memory |\n| 4 | **memory.store** | Memory Storage | Memory |\n| 5 | **mission.analyze** | Mission Analyzer | System |\n| 6 | **mission.reflect** | Mission Reflector | Reflection |\n| 7 | **planner.plan** | Mission Planner | Planner |\n| 8 | **regist\u2026"
+          "content": "I have access to the following capabilities:\n\n1. analyze\n2. route\n3. plan:generate\n4. execute:tools\n5. execute:generation\n6. reflect\n7. read:models\n8. read:capabilities\n9. read:repository"
         },
         {
           "role": "user",
@@ -1362,7 +1362,7 @@
         },
         {
           "role": "assistant",
-          "content": "I currently have no stored memories or knowledge about you or your preferences. My memory bank is empty \u2014 this is a fresh session with nothing retained from any prior interactions."
+          "content": "I have no stored memories."
         },
         {
           "role": "user",
@@ -1372,8 +1372,8 @@
       "llm_calls": [
         {
           "mode": "chat",
-          "model": "deepseek-ai/deepseek-v4-pro",
-          "resp_preview": "Based on the model registry, all 6 models are currently provided by a single provider: **NVIDIA**.\n\nSo there is **1 provider** configured \u2014 NVIDIA."
+          "model": "meta/llama-3.1-70b-instruct",
+          "resp_preview": "There is 1 provider configured: nvidia"
         }
       ],
       "event_sequence": [
@@ -1397,9 +1397,9 @@
         "node_completed",
         "mission_completed",
         "ReflectionStarted",
+        "ReflectionCompleted",
         "MissionCompleted",
-        "RuntimeSessionCompleted",
-        "ReflectionCompleted"
+        "RuntimeSessionCompleted"
       ],
       "reflection_ran": true,
       "attribution": {
