@@ -26,6 +26,18 @@ def _validate_config() -> None:
 
         threading.Thread(target=provider_registry.probe_health, daemon=True).start()
 
+    # Bind local system TTS (macOS `say`) so voice output works out of the box,
+    # no weights/cloud. STT / richer TTS come from OmniVoice/VibeVoice via MCP.
+    try:
+        from app.voice.driver import voice_manager
+        from app.voice.system_driver import SystemVoiceDriver
+
+        drv = SystemVoiceDriver()
+        if drv.available():
+            voice_manager.set_driver(drv)
+    except Exception:
+        pass
+
     # Bind the keyless research provider so grounded research works out of the
     # box (no API key required).
     try:
