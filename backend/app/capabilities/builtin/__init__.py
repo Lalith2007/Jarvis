@@ -27,6 +27,7 @@ from app.capabilities.builtin.voice_cap import (
     VoiceSpeakCapability,
 )
 from app.capabilities.builtin.social_cap import SocialPostCapability
+from app.capabilities.builtin.vault_cap import VaultSearchCapability
 from app.memory.capabilities import (
     MemoryReadCapability,
     MemoryWriteCapability,
@@ -57,6 +58,7 @@ def register_builtins():
     capability_registry.register(VoiceTranscribeCapability())
     capability_registry.register(VoiceSpeakCapability())
     capability_registry.register(SocialPostCapability())
+    capability_registry.register(VaultSearchCapability())
     capability_registry.register(MemoryReadCapability())
     capability_registry.register(MemoryWriteCapability())
     capability_registry.register(MemoryConsolidateCapability())

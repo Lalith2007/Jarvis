@@ -129,6 +129,21 @@ _GROUNDING_GROUPS: list[tuple[str, list[str], str, float, str]] = [
         0.95,
         "Query requires reading authoritative repository files (README/docs).",
     ),
+    # ── Vault / notes information (the user's Obsidian second brain) ─────────
+    (
+        "vault_information",
+        [
+            r"\bnorth\s*star\b",
+            r"\b(my|the) (vault|notes?|second brain)\b",
+            r"(review|read|search|show|summar(y|ize|ise)|check|look at|open) (my |the )?(vault|notes?|north\s*star|goals|daily note|obsidian)",
+            r"\b(what|whats|what's) (are |is )?(my|in my) (goals|notes|vault|north\s*star)",
+            r"\bobsidian\b",
+            r"\bmy goals\b",
+        ],
+        "vault.search",
+        0.95,
+        "Query requires reading the user's Obsidian vault notes as ground truth.",
+    ),
 ]
 
 # ---------------------------------------------------------------------------

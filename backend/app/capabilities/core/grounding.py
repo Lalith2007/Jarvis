@@ -18,5 +18,6 @@ GROUNDING_CAPABILITY_IDS: frozenset[str] = frozenset(
         "registry.capabilities",
         "memory.retrieve",
         "repository.read",
+        "vault.search",
     }
 )
