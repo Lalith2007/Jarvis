@@ -1,6 +1,6 @@
 import time
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.capabilities.core.base import BaseCapability
 from app.capabilities.core.models import CapabilityContext, CapabilityResult, CapabilityDiagnostics
@@ -17,7 +17,7 @@ class CapabilityExecutorLifecycle:
     
     def execute(self, capability: BaseCapability, context: CapabilityContext) -> CapabilityResult:
         diagnostics = CapabilityDiagnostics(
-            initialized_at=datetime.utcnow()
+            initialized_at=datetime.now(timezone.utc)
         )
         
         EventPublisher.publish(
@@ -36,7 +36,7 @@ class CapabilityExecutorLifecycle:
             diagnostics.execution_trace.append("Validation passed.")
             
             # 3. Execute
-            diagnostics.started_at = datetime.utcnow()
+            diagnostics.started_at = datetime.now(timezone.utc)
             EventPublisher.publish(
                 subsystem="capabilities",
                 event_type="CapabilityStarted",
@@ -49,7 +49,7 @@ class CapabilityExecutorLifecycle:
             
             # 4. Metrics & Diagnostics
             result.execution_time = execution_time
-            diagnostics.completed_at = datetime.utcnow()
+            diagnostics.completed_at = datetime.now(timezone.utc)
             diagnostics.execution_trace.append(f"Execution completed in {execution_time:.3f}s.")
             result.diagnostics = diagnostics
             

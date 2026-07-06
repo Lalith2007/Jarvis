@@ -57,9 +57,14 @@ class MissionGraph(BaseModel):
     graph_id: str
     schema_version: str = "1.0"
     graph_version: str = "1.0"
-    
+
     nodes: dict[str, MissionNode] = Field(default_factory=dict)
-    
+
+    # The AthenaDecision that produced this graph — serialised as dict to avoid
+    # circular imports.  runtime.generate consumes this to skip the second
+    # Athena routing pass (unified Athena authority).
+    athena_decision: dict[str, Any] | None = None
+
     # Metrics
     graph_duration_ms: float = 0.0
     successful_nodes: int = 0

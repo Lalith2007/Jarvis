@@ -1,5 +1,9 @@
+import logging
+
+from app.capabilities.core.grounding import GROUNDING_CAPABILITY_IDS
 from app.execution.manager import execution_manager
 from app.execution.models import ExecutionContext
+from app.mission.graph import NodeStatus
 from app.mission.models import (
     Mission,
     MissionStatus,
@@ -8,6 +12,8 @@ from app.mission.builder import mission_graph_builder
 from app.mission.engine import graph_execution_manager
 from app.mission.service import mission_service
 from app.tools.models import ToolResult
+
+logger = logging.getLogger(__name__)
 
 
 class MissionController:
@@ -57,6 +63,7 @@ class MissionController:
         self,
         goal: str,
         session_id: str | None = None,
+        stream: bool = False,
     ) -> tuple[ToolResult | None, ExecutionContext]:
         """
         Full mission lifecycle: create → analyze → route → plan → execute → complete.
@@ -65,6 +72,7 @@ class MissionController:
         from app.platform.publisher import EventPublisher
 
         mission, execution = self.create(goal, session_id=session_id)
+        mission.metadata["stream"] = stream
 
         EventPublisher.publish(
             subsystem="mission",
@@ -86,14 +94,40 @@ class MissionController:
             
             result = None
             for node in graph.nodes.values():
-                if node.capability == "executor.execute" and node.result is not None:
+                if node.capability == "runtime.generate" and node.result is not None:
                     result = node.result
                     break
+
+            # Fallback if no runtime.generate (shouldn't happen in 12.7)
+            if result is None:
+                for node in graph.nodes.values():
+                    if node.capability == "executor.execute" and node.result is not None:
+                        result = node.result
+                        break
+
+            # Grounding guarantee: if runtime.generate never produced output
+            # because a required grounding capability failed, return an explicit
+            # refusal instead of a silent "Mission completed." — never fabricate.
+            if result is None:
+                grounding_failure = self._grounding_failure_message(graph)
+                if grounding_failure:
+                    tool_result_obj = ToolResult(
+                        success=False, output=grounding_failure
+                    )
+                    self.complete(
+                        mission,
+                        execution,
+                        response=grounding_failure,
+                        session_id=session_id,
+                    )
+                    if getattr(execution, "runtime_session", None):
+                        from app.runtime.service import runtime_service
+                        runtime_service.cleanup_session(execution.runtime_session)
+                        execution.runtime_session = None
+                    return tool_result_obj, execution
         except Exception as exc:
-            print(f"DEBUG controller pipeline error: {exc}")
-            import traceback
-            traceback.print_exc()
-            
+            logger.exception("Mission pipeline error: %s", exc)
+
             if hasattr(execution, "runtime_session") and execution.runtime_session:
                 from app.runtime.service import runtime_service
                 runtime_service.cleanup_session(execution.runtime_session)
@@ -106,15 +140,38 @@ class MissionController:
             )
             return None, execution
 
-        # Result might be ToolResult or dict. Handle accordingly for response string.
+        # `result` is the UNWRAPPED capability payload (CapabilityManager.execute
+        # returns result.result), so runtime.generate yields either a plain
+        # string (non-stream) or a StreamResult dict {"stream_id", "is_stream"}.
         response = "Mission completed."
+        tool_result_obj = None
         if result is not None:
-            if hasattr(result, "output"):
-                response = result.output
+            if isinstance(result, dict) and result.get("is_stream"):
+                # Streaming: preserve the stream metadata so Hermes can consume it.
+                tool_result_obj = ToolResult(
+                    success=True, output="<stream>", metadata=result
+                )
             elif isinstance(result, dict) and "response" in result:
                 response = result["response"]
+                tool_result_obj = ToolResult(success=True, output=response)
+            elif hasattr(result, "output"):
+                response = result.output
+                tool_result_obj = (
+                    result
+                    if isinstance(result, ToolResult)
+                    else ToolResult(
+                        success=getattr(result, "success", True), output=response
+                    )
+                )
+            elif hasattr(result, "result"):
+                res_val = result.result
+                response = str(res_val)
+                tool_result_obj = ToolResult(
+                    success=getattr(result, "success", True), output=response
+                )
             else:
                 response = str(result)
+                tool_result_obj = ToolResult(success=True, output=response)
 
         self.complete(
             mission,
@@ -128,7 +185,29 @@ class MissionController:
             runtime_service.cleanup_session(execution.runtime_session)
             execution.runtime_session = None
 
-        return result, execution
+        return tool_result_obj, execution
+
+    def _grounding_failure_message(self, graph) -> str | None:
+        """
+        If a required grounding capability failed or was cancelled (so
+        runtime.generate never produced grounded output), return an explicit
+        refusal listing the sources that could not be retrieved.  Returns None
+        when there is no grounding failure to report.
+        """
+        failed = [
+            node.capability
+            for node in graph.nodes.values()
+            if node.capability in GROUNDING_CAPABILITY_IDS
+            and node.status in (NodeStatus.FAILED, NodeStatus.CANCELLED)
+        ]
+        if not failed:
+            return None
+        return (
+            "I was unable to retrieve the authoritative system information "
+            "required to answer this question. The following data sources did "
+            f"not return results: {', '.join(sorted(set(failed)))}. "
+            "I will not fabricate this information from prior knowledge."
+        )
 
     def complete(
         self,

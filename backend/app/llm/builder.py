@@ -56,25 +56,37 @@ class MessageBuilder:
         if context.tool_results:
 
             tool_output = "\n\n".join(
-                [
-                    (
-                        f"Tool: {tool.get('tool_name', 'Unknown')}\n"
-                        f"Success: {tool.get('success', False)}\n"
-                        f"Output:\n{tool.get('output', '')}"
-                    )
-                    for tool in context.tool_results
-                ]
+                self._format_tool_result(tool)
+                for tool in context.tool_results
             )
 
             messages.append(
                 {
                     "role": "system",
                     "content": (
-                        "Recent tool execution results:\n\n"
+                        "Authoritative tool execution results "
+                        "(treat as ground truth — do not invent alternative values):\n\n"
                         + tool_output
                     ),
                 }
             )
+
+            if context.grounding_enforced:
+                messages.append(
+                    {
+                        "role": "system",
+                        "content": (
+                            "GROUNDING ENFORCEMENT ACTIVE.\n\n"
+                            "The tool results above contain authoritative system data. "
+                            "Answer ONLY using information from the tool results. "
+                            "Do NOT add items, models, providers, or capabilities that are "
+                            "not present in the tool results. "
+                            "If the tool result lists zero items, report zero items. "
+                            "Your training knowledge about external AI systems is irrelevant "
+                            "here — answer only from the tool results provided above."
+                        ),
+                    }
+                )
 
         # -----------------------------
         # Conversation
@@ -94,6 +106,38 @@ class MessageBuilder:
         )
 
         return messages
+
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Private helpers
+    # ──────────────────────────────────────────────────────────────────────────
+
+    @staticmethod
+    def _format_tool_result(tool: dict) -> str:
+        """
+        Sprint 12.8 — Structured tool context.
+
+        When the output is a dict (structured CapabilityResult.result), render
+        it as compact JSON so the LLM receives typed data rather than
+        concatenated strings.  Plain strings are passed through unchanged for
+        backward compatibility with legacy capabilities.
+        """
+        import json
+
+        tool_name = tool.get("tool_name", "Unknown")
+        success = tool.get("success", False)
+        output = tool.get("output", "")
+
+        if isinstance(output, (dict, list)):
+            output_str = json.dumps(output, indent=2, ensure_ascii=False)
+        else:
+            output_str = str(output) if output is not None else ""
+
+        return (
+            f"Tool: {tool_name}\n"
+            f"Success: {success}\n"
+            f"Output:\n{output_str}"
+        )
 
 
 message_builder = MessageBuilder()

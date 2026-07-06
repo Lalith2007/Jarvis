@@ -35,12 +35,24 @@ class CapabilityManager:
         raw_budget = node.metadata.get("budget", {})
         resource_budget = raw_budget if isinstance(raw_budget, dict) else {"latency_budget_ms": raw_budget}
 
+        # Forward the serialised AthenaDecision when the node carries it
+        # (currently only runtime.generate nodes embed this).  Downstream
+        # capabilities deserialise it to avoid a redundant Athena routing pass.
+        raw_decision = node.metadata.get("athena_decision")
+        athena_decision_obj = None
+        if raw_decision:
+            try:
+                from app.athena.models import AthenaDecision
+                athena_decision_obj = AthenaDecision.model_validate(raw_decision)
+            except Exception:
+                pass
+
         context = CapabilityContext(
             mission_id=mission_id,
             graph_id=node.metadata.get("graph_id", ""),
             execution_id=execution_id,
             node_id=node.id,
-            athena_decision=None,
+            athena_decision=athena_decision_obj,
             memory_plan=None,
             resource_budget=resource_budget,
             runtime_state=runtime_state,

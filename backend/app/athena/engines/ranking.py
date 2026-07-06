@@ -7,6 +7,9 @@ class ModelRankingEngine:
     """
     Deterministically ranks models based on complexity and intent.
     Returns (List[ModelRecommendation], confidence_score).
+
+    All registered models stay routable — slow models are waited on (see
+    LLM_TIMEOUT), never disabled.
     """
 
     def evaluate(self, intent: IntentClass, complexity: ComplexityClass, risk: str) -> Tuple[List[ModelRecommendation], float]:
@@ -69,6 +72,24 @@ class ModelRankingEngine:
                     reason="Fallback for fast responses.",
                     estimated_latency=600.0,
                     estimated_cost=0.0015
+                )
+            )
+            recommendations.append(
+                ModelRecommendation(
+                    model=ModelType.NEMOTRON,
+                    score=0.82,
+                    reason="Reliable general fallback.",
+                    estimated_latency=2000.0,
+                    estimated_cost=0.01
+                )
+            )
+            recommendations.append(
+                ModelRecommendation(
+                    model=ModelType.LLAMA31,
+                    score=0.80,
+                    reason="Reliable general fallback.",
+                    estimated_latency=1500.0,
+                    estimated_cost=0.01
                 )
             )
         # General purpose

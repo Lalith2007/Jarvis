@@ -66,7 +66,7 @@ async def chat_stream(request: Request, body: ChatRequest):
         try:
             # Run the synchronous streaming generator in a thread
             # so it doesn't block the event loop (required for WS delivery)
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             chunk_queue: asyncio.Queue[str | None] = asyncio.Queue()
 
             def _run_stream():

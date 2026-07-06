@@ -5,11 +5,15 @@ from app.documents.models import Document
 
 
 class DocumentService:
-    def __init__(self):
-        self.root = Path(settings.VAULT_PATH)
+    def _root(self) -> Path:
+        if not settings.VAULT_PATH:
+            raise RuntimeError(
+                "No vault configured — set OBSIDIAN_VAULT/VAULT_PATH to write documents."
+            )
+        return Path(settings.VAULT_PATH)
 
     def write(self, document: Document) -> Path:
-        folder = self.root / document.folder
+        folder = self._root() / document.folder
         folder.mkdir(parents=True, exist_ok=True)
 
         path = folder / document.filename

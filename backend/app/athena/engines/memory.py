@@ -24,8 +24,13 @@ class MemoryEngine:
         )
         confidence = 0.90
         
-        # Check for explicit memory keywords
-        needs_retrieval = bool(re.search(r"\b(remember|recall|previous|last time|history|context)\b", goal_lower))
+        # Check for explicit memory keywords — extended to cover all Sprint 12.9 variants
+        needs_retrieval = bool(re.search(
+            r"\b(remember|recall|previous|last time|history|context|memories|"
+            r"learned|stored|knowledge base|what do you know|what have you|"
+            r"search memory|memory search|retrieve memory)\b",
+            goal_lower,
+        ))
         needs_storage = bool(re.search(r"\b(save|store|remember this|keep track)\b", goal_lower))
         
         if needs_retrieval and needs_storage:

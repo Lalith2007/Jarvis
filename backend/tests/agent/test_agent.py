@@ -1,4 +1,8 @@
+import pytest
+
 from app.agent.service import agent
+
+pytestmark = pytest.mark.live
 
 
 def test_agent_search():

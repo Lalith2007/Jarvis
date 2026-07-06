@@ -92,6 +92,10 @@ class CapabilityRegistry:
         """
         return [cap.manifest for cap in self._capabilities.values()]
 
+    def ids(self) -> List[str]:
+        """Return all registered capability IDs."""
+        return list(self._capabilities.keys())
+
     def health(self) -> Dict[str, str]:
         """
         Returns health status of all capabilities.
