@@ -26,6 +26,20 @@ def _validate_config() -> None:
 
         threading.Thread(target=provider_registry.probe_health, daemon=True).start()
 
+    # Recover missions left in-flight by a previous process (Sprint 13.9).
+    try:
+        from app.mission.store import mission_store
+
+        recovered = mission_store.recover_incomplete()
+        if recovered:
+            import logging
+
+            logging.getLogger(__name__).info(
+                "Recovered %d in-flight mission(s) after restart", len(recovered)
+            )
+    except Exception:
+        pass
+
 app.add_middleware(
     CORSMiddleware,
     allow_origin_regex=r"https?://(localhost|127\.0\.0\.1)(:\d+)?",
