@@ -2,6 +2,10 @@
 Backward-compatibility test: hermes.chat() still works.
 Updated for Sprint 11 (now returns tuple).
 """
+import pytest
+
+pytestmark = pytest.mark.live
+
 from app.agents.hermes.service import hermes
 from app.memory.conversation.service import conversation
 

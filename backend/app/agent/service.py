@@ -16,11 +16,13 @@ class Agent:
         self,
         query: str,
         session_id: str | None = None,
+        stream: bool = False,
     ) -> AgentResult:
 
         result, execution = mission_controller.run(
             query,
             session_id=session_id,
+            stream=stream,
         )
 
         if result is None:

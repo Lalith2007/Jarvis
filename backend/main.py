@@ -1,12 +1,30 @@
-from fastapi import FastAPI
+import os
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from app.api.routes import router
+from app.config.settings import settings
 
 app = FastAPI(
     title="JARVIS Backend",
     version="0.1.0",
 )
+
+
+@app.on_event("startup")
+def _validate_config() -> None:
+    settings.validate()
+    # Optionally probe model health in the background so routing avoids models
+    # that don't respond. Off by default (keeps startup fast / tests hermetic);
+    # enable in production with JARVIS_PROBE_ON_STARTUP=1.
+    if os.getenv("JARVIS_PROBE_ON_STARTUP") == "1":
+        import threading
+
+        from app.providers.registry import provider_registry
+
+        threading.Thread(target=provider_registry.probe_health, daemon=True).start()
 
 app.add_middleware(
     CORSMiddleware,
@@ -15,6 +33,30 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def optional_token_auth(request: Request, call_next):
+    """
+    Optional bearer-token auth for /api routes.
+
+    Enforced only when JARVIS_API_TOKEN is set in the environment, so local
+    development and the bundled desktop frontend keep working without config
+    while production deployments can require a token by setting the env var.
+    Accepts `Authorization: Bearer <token>` or `X-API-Token: <token>`.
+    """
+    token = os.getenv("JARVIS_API_TOKEN")
+    if token and request.url.path.startswith("/api"):
+        auth = request.headers.get("authorization", "")
+        provided = (
+            auth[7:]
+            if auth.lower().startswith("bearer ")
+            else request.headers.get("x-api-token", "")
+        )
+        if provided != token:
+            return JSONResponse(status_code=401, content={"detail": "Unauthorized"})
+    return await call_next(request)
+
 
 app.include_router(router)
 

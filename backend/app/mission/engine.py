@@ -1,3 +1,4 @@
+import logging
 import time
 from datetime import datetime
 import concurrent.futures
@@ -9,6 +10,8 @@ from app.mission.capabilities import capability_manager
 from app.mission.events import MissionEvent, MissionEventType
 from app.platform.publisher import EventPublisher
 from app.reflection.orchestrator import reflection_orchestrator
+
+logger = logging.getLogger(__name__)
 
 
 class GraphExecutionManager:
@@ -67,8 +70,9 @@ class GraphExecutionManager:
                         if dep_node.result:
                             if isinstance(dep_node.result, dict):
                                 node.payload.update(dep_node.result)
-                            else:
-                                node.payload[dep_node.capability] = dep_node.result
+                            # Always store under capability ID so downstream can look up
+                            # by capability name regardless of result type.
+                            node.payload[dep_node.capability] = dep_node.result
 
                     in_progress_nodes.add(node_id)
                     future = executor.submit(self._execute_node_with_retries, node, mission_id, session_id)
@@ -95,7 +99,7 @@ class GraphExecutionManager:
                             failed_nodes.add(node_id)
                             graph.failed_nodes += 1
                     except Exception as e:
-                        print(f"DEBUG engine error in node {node_id}: {e}")
+                        logger.error("Engine error in node %s: %s", node_id, e)
                         failed_nodes.add(node_id)
                         graph.failed_nodes += 1
                         graph.nodes[node_id].status = NodeStatus.FAILED
@@ -218,8 +222,7 @@ class GraphExecutionManager:
                 return True
 
             except Exception as e:
-                import traceback
-                print(f"DEBUG node {node.id} execution error: {e}\n{traceback.format_exc()}")
+                logger.exception("Node %s execution error: %s", node.id, e)
                 retries += 1
                 if retries >= max_attempts:
                     node.status = NodeStatus.FAILED

@@ -126,27 +126,7 @@ class TestHermesPlatformEvents:
         hermes_events = [e for e in received if e.event_type == "HermesReceivedRequest"]
         assert len(hermes_events) >= 1
 
-    def test_emits_memory_events(self):
-        received: list[PlatformEvent] = []
 
-        from app.platform.event_bus import event_bus
-        from app.platform.subscriber import EventSubscriber
-
-        async def capture(event: PlatformEvent):
-            received.append(event)
-
-        sub = EventSubscriber(callback=capture, subsystems=["memory"])
-        event_bus.subscribe(sub)
-
-        import time
-        hermes.chat("Search my memory")
-        time.sleep(0.2)
-
-        event_bus.unsubscribe(sub)
-
-        event_types = {e.event_type for e in received}
-        assert "MemoryRetrievalStarted" in event_types
-        assert "MemoryRetrievalCompleted" in event_types
 
 
 # ── ContextBuilder enrichment ────────────────────────────────────────────────

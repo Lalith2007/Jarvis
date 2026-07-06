@@ -7,67 +7,73 @@ from app.config.settings import settings
 class PermissionManager:
     """
     Controls which filesystem locations JARVIS may access.
+
+    Security model: a path is allowed only if its FULLY RESOLVED form (symlinks
+    and `..` collapsed) lies inside one of the allowed roots.  Validation is
+    always done on the resolved path, never the raw string, so
+    `<root>/../../../etc/passwd` cannot escape the sandbox.  Callers should
+    operate on the resolved path returned by `resolve_if_allowed`.
     """
 
     def __init__(self):
-        self.allowed_roots = [
-            Path(settings.OBSIDIAN_VAULT).resolve(),
-            (Path.home() / "Desktop").resolve(),
-            (Path.home() / "Documents").resolve(),
-            (Path.home() / "Downloads").resolve(),
-        ]
+        raw_roots: list[Path] = []
 
-        # Allow the system temporary directory.
-        #
-        # On macOS, tempfile.gettempdir() may return /var/... while pytest
-        # creates paths under /private/var/..., so we add both forms.
+        vault = getattr(settings, "OBSIDIAN_VAULT", None) or getattr(
+            settings, "VAULT_PATH", None
+        )
+        if vault:
+            raw_roots.append(Path(vault))
+
+        raw_roots.extend(
+            [
+                (Path.home() / "Desktop"),
+                (Path.home() / "Documents"),
+                (Path.home() / "Downloads"),
+            ]
+        )
+
+        # System temp dir — pytest and tooling write here.  On macOS
+        # gettempdir() may be /var/... while resolved paths are /private/var/...
         temp_dir = Path(tempfile.gettempdir())
-
-        candidates = {
-            temp_dir,
-            temp_dir.resolve(),
-        }
-
+        raw_roots.append(temp_dir)
         temp_str = str(temp_dir)
-
         if temp_str.startswith("/var/"):
-            candidates.add(Path("/private") / temp_str.lstrip("/"))
+            raw_roots.append(Path("/private") / temp_str.lstrip("/"))
 
-        for candidate in candidates:
+        # Store roots in fully-resolved form and de-duplicate.
+        resolved_roots: list[Path] = []
+        for root in raw_roots:
             try:
-                resolved = candidate.resolve()
-            except Exception:
-                resolved = candidate
+                resolved = root.resolve()
+            except OSError:
+                continue
+            if resolved not in resolved_roots:
+                resolved_roots.append(resolved)
 
-            if resolved not in self.allowed_roots:
-                self.allowed_roots.append(resolved)
+        self.allowed_roots = resolved_roots
 
-            if candidate not in self.allowed_roots:
-                self.allowed_roots.append(candidate)
+    def resolve_if_allowed(self, path: str) -> Path | None:
+        """
+        Return the resolved path if it lies within an allowed root, else None.
 
-    def allowed(
-        self,
-        path: str,
-    ) -> bool:
-
-        target = Path(path)
-
-        candidates = [target]
-
+        This resolves `..` and symlinks BEFORE validating, closing the
+        path-traversal / symlink-escape hole.
+        """
         try:
-            candidates.append(target.resolve())
-        except Exception:
-            pass
+            real = Path(path).resolve()
+        except (OSError, RuntimeError, ValueError):
+            return None
 
-        for candidate in candidates:
-            for root in self.allowed_roots:
-                try:
-                    candidate.relative_to(root)
-                    return True
-                except ValueError:
-                    continue
+        for root in self.allowed_roots:
+            try:
+                real.relative_to(root)
+                return real
+            except ValueError:
+                continue
+        return None
 
-        return False
+    def allowed(self, path: str) -> bool:
+        return self.resolve_if_allowed(path) is not None
 
 
 permissions = PermissionManager()

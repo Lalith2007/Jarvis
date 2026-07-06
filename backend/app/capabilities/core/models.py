@@ -27,6 +27,7 @@ class CapabilityManifest(BaseModel):
     description: str
     category: CapabilityCategory
     permissions: List[str] = Field(default_factory=list)
+    parameters: Dict[str, Any] = Field(default_factory=dict)
     dependencies: List[str] = Field(default_factory=list)
     supported_inputs: List[str] = Field(default_factory=list)
     supported_outputs: List[str] = Field(default_factory=list)

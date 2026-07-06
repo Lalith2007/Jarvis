@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Packaging / build
+*.egg-info/
+dist/
+build/
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local data & logs
+data/
+logs/
+*.log
+
+# Ad-hoc dumps / reports (do not track)
+*_results.txt
+*_deps.txt
+*_logs.txt
+captured_events.txt
+forensic_audit_report*.json
+forensic_audit_sprint_*_report.json

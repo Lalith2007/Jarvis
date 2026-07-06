@@ -1,22 +1,43 @@
 from app.agents.hermes.models import PromptContext
 from app.llm.prompts.loader import prompt_loader
 from app.memory.conversation.service import conversation
-from app.memory.vault.service import vault
-from app.query.service import query_processor
 
 
 class ContextBuilder:
     """
-    Builds a complete PromptContext before Hermes invokes the LLM.
+    Sprint 12.8 — Capability-first ContextBuilder (formatter only).
 
-    Context includes:
-      - system prompt
-      - conversation history
-      - vault knowledge
-      - tool results
-      - session_id
-      - metadata (capabilities, runtime status)
+    This class formats inputs into a PromptContext.  It does NOT:
+      - query the vault
+      - route requests
+      - retrieve memories
+      - perform capability discovery at build time
+
+    All data arrives as parameters from upstream capabilities that have
+    already executed inside the Mission Graph.
+
+    Parameters
+    ----------
+    user_query:
+        The raw user query string.
+    tool_results:
+        Structured output dicts from prior capability nodes.
+        Each dict: {"tool_name": str, "success": bool, "output": Any}
+        "output" may be a plain str OR a structured dict/list.
+    session_id:
+        Session identifier forwarded from Hermes.
+    mission_id:
+        Active mission identifier.
+    execution_metadata:
+        Extra key/value pairs to include in PromptContext.metadata.
+    injected_knowledge:
+        Pre-fetched memory results (from memory.retrieve node).
+    selected_model:
+        Model ID chosen by the unified AthenaDecision.  Injected into
+        metadata so the system prompt carries it as ground truth.
     """
+
+    from app.capabilities.core.grounding import GROUNDING_CAPABILITY_IDS as _GROUNDING_CAP_IDS
 
     def build(
         self,
@@ -26,59 +47,38 @@ class ContextBuilder:
         session_id: str | None = None,
         mission_id: str | None = None,
         execution_metadata: dict | None = None,
+        injected_knowledge: list | None = None,
+        selected_model: str | None = None,
     ) -> PromptContext:
 
-        processed_query = query_processor.process(user_query)
+        knowledge = injected_knowledge or []
+        resolved_tool_results = tool_results or []
 
-        try:
-            knowledge = vault.search(
-                processed_query,
-                limit=knowledge_limit,
-            )
-        except Exception as exc:
-            knowledge = []
-            from app.platform.publisher import EventPublisher
-            EventPublisher.publish(
-                subsystem="memory",
-                event_type="MemoryRetrievalFailed",
-                session_id=session_id,
-                mission_id=mission_id,
-                status="error",
-                severity="error",
-                payload={"error": str(exc)},
-            )
+        # Detect whether any grounding capability output is present.
+        grounding_enforced = any(
+            t.get("tool_name") in self._GROUNDING_CAP_IDS
+            for t in resolved_tool_results
+        )
 
-        # Collect runtime metadata to give the LLM situational awareness
-        metadata: dict = execution_metadata or {}
+        # Runtime metadata injected into the context so the LLM can answer
+        # grounding questions using authoritative system data.
+        metadata: dict = dict(execution_metadata or {})
         if session_id:
             metadata["session_id"] = session_id
         if mission_id:
             metadata["mission_id"] = mission_id
-
-        try:
-            from app.capabilities.registry import capability_registry
-            metadata["available_capabilities"] = [
-                c.value for c in capability_registry.get_all()
-            ]
-        except Exception:
-            pass
-
-        try:
-            from app.runtime.manager import runtime_manager
-            metadata["active_runtime_sessions"] = len(
-                runtime_manager._active_sessions
-            )
-        except Exception:
-            pass
+        if selected_model:
+            metadata["selected_model"] = selected_model
 
         return PromptContext(
             system_prompt=prompt_loader.load("system.md"),
             conversation=conversation.history(),
             knowledge=knowledge,
-            tool_results=tool_results or [],
+            tool_results=resolved_tool_results,
             user_query=user_query,
             session_id=session_id,
             metadata=metadata,
+            grounding_enforced=grounding_enforced,
         )
 
 

@@ -5,16 +5,25 @@ from app.config.settings import settings
 
 
 def test_deterministic_routing():
-    """Verify heuristic routing bypasses LLM for standard commands."""
+    """
+    Verify heuristic routing bypasses the LLM for standard commands.
+
+    Sprint 12.9: "Find README" is a repository query and must ground through
+    repository.read before runtime.generate — NOT the planner/executor cycle.
+    """
     context = PromptContext(system_prompt="sys", user_query="Find README")
     decision = athena.analyze(context)
-    
+    caps = [c.capability for c in decision.recommended_capabilities]
+
     assert decision.confidence >= settings.ATHENA_CONFIDENCE_THRESHOLD
     assert decision.intent == IntentClass.research
     assert decision.complexity == ComplexityClass.trivial
     assert len(decision.recommended_capabilities) >= 2
-    assert any(c.capability == "planner.plan" for c in decision.recommended_capabilities)
-    assert any(c.capability == "executor.execute" for c in decision.recommended_capabilities)
+    assert "repository.read" in caps
+    assert "runtime.generate" in caps
+    # Grounding queries must NOT spin up the planner/executor cycle.
+    assert "planner.plan" not in caps
+    assert "executor.execute" not in caps
     assert decision.requires_tools is True
     assert "deterministic" in decision.reasoning_summary.lower()
 
