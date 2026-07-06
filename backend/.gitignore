@@ -27,3 +27,6 @@ logs/
 captured_events.txt
 forensic_audit_report*.json
 forensic_audit_sprint_*_report.json
+
+# MCP server config (may contain tokens)
+mcp_servers.json

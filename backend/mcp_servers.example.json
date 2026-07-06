@@ -1,0 +1,18 @@
+{
+  "_comment": "Copy to mcp_servers.json (or set JARVIS_MCP_CONFIG) to auto-connect MCP servers at startup. Their tools become capabilities Athena can use.",
+  "mcpServers": {
+    "omnivoice": {
+      "command": "python",
+      "args": ["-m", "backend.mcp_shim"],
+      "cwd": "/absolute/path/to/omnivoice-studio",
+      "env": {"OMNIVOICE_PORT": "3900"},
+      "permissions": ["voice:speak", "voice:listen"]
+    },
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "auth_token": "set-your-GITHUB_TOKEN-here",
+      "permissions": ["social:github"]
+    }
+  }
+}

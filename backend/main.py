@@ -36,6 +36,15 @@ def _validate_config() -> None:
     except Exception:
         pass
 
+    # Auto-connect configured MCP servers (Voice/Social/etc.) so their tools
+    # register as capabilities — config-driven, no bespoke per-service code.
+    try:
+        from app.mcp.config import autoconnect
+
+        autoconnect()
+    except Exception:
+        pass
+
     # Recover missions left in-flight by a previous process (Sprint 13.9).
     try:
         from app.mission.store import mission_store
