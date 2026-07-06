@@ -148,3 +148,91 @@ class MemoryWriteCapability(BaseCapability):
                 result=None,
                 errors=[str(e)]
             )
+
+
+class MemoryConsolidateCapability(BaseCapability):
+    """
+    Consolidates short-term WORKING memories into a durable long-term SUMMARY
+    record (memory consolidation, Sprint 13.3). Runs through the standard
+    capability pipeline — memory is only ever touched via MemoryEngine here.
+    """
+
+    def __init__(self):
+        manifest = CapabilityManifest(
+            id="memory.consolidate",
+            version="1.0.0",
+            name="Memory Consolidation",
+            description="Distills working memories into a long-term summary record.",
+            author="Jarvis System",
+            category="Memory",
+            parameters={
+                "topic": {"type": "string", "description": "Optional topic to consolidate"},
+                "limit": {"type": "integer", "description": "Max working memories to consolidate"},
+            },
+            dependencies=[],
+        )
+        super().__init__(manifest, CapabilityConfig())
+
+    def initialize(self, context: CapabilityContext) -> None:
+        pass
+
+    def validate(self, context: CapabilityContext) -> None:
+        pass
+
+    def cleanup(self, context: CapabilityContext) -> None:
+        pass
+
+    def health_check(self) -> str:
+        return "healthy"
+
+    def estimate_cost(self, context: CapabilityContext) -> float:
+        return 0.0
+
+    def estimate_latency(self, context: CapabilityContext) -> float:
+        return 20.0
+
+    def execute(self, context: CapabilityContext, diagnostics: CapabilityDiagnostics) -> CapabilityResult:
+        topic = context.runtime_state.get("topic", "") or context.runtime_state.get("goal", "")
+        limit = context.runtime_state.get("limit", 50)
+        try:
+            working = memory_engine.search(
+                MemoryQuery(query=topic, types=[MemoryType.WORKING], limit=limit)
+            )
+            records = working.results
+            if not records:
+                return CapabilityResult(
+                    success=True,
+                    status="success",
+                    result={"consolidated": 0, "summary_id": None, "note": "no working memories"},
+                )
+
+            bullet_points = "\n".join(f"- {r.title or r.content[:80]}" for r in records)
+            summary_record = MemoryRecord(
+                type=MemoryType.SUMMARY,
+                importance=MemoryImportance.HIGH,
+                title=f"Consolidated: {topic or 'working memory'}",
+                summary=f"Consolidated {len(records)} working memories.",
+                content=bullet_points,
+                tags=["consolidated", "long_term"],
+                source="memory.consolidate",
+            )
+            write = memory_engine.store(summary_record)
+
+            # Retire the consolidated working memories.
+            consolidated_ids = []
+            for r in records:
+                if memory_engine.delete(r.memory_id):
+                    consolidated_ids.append(r.memory_id)
+
+            return CapabilityResult(
+                success=True,
+                status="success",
+                result={
+                    "consolidated": len(consolidated_ids),
+                    "summary_id": summary_record.memory_id,
+                    "write_success": getattr(write, "success", True),
+                },
+            )
+        except Exception as e:
+            logger.error(f"MemoryConsolidateCapability failed: {e}")
+            return CapabilityResult(success=False, status="failed", result=None, errors=[str(e)])

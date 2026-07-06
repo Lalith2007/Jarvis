@@ -10,9 +10,20 @@ from pydantic import BaseModel, Field
 class MemoryType(str, Enum):
     FACT = "fact"
     PREFERENCE = "preference"
-    EPISODIC = "episodic"
-    PROCEDURAL = "procedural"
-    SUMMARY = "summary"
+    EPISODIC = "episodic"        # events / what happened
+    PROCEDURAL = "procedural"    # how-to / learned procedures
+    SEMANTIC = "semantic"        # distilled knowledge / concepts
+    WORKING = "working"          # short-term scratch, consolidated into long-term
+    SUMMARY = "summary"          # consolidated long-term summaries
+
+
+# Memory types that represent durable, long-term knowledge (consolidation target).
+LONG_TERM_TYPES = {
+    MemoryType.SEMANTIC,
+    MemoryType.SUMMARY,
+    MemoryType.PROCEDURAL,
+    MemoryType.FACT,
+}
 
 
 class MemoryImportance(str, Enum):
