@@ -8,6 +8,7 @@ from app.capabilities.builtin.runtime_cap import RuntimeGenerateCapability
 from app.capabilities.builtin.registry_cap import RegistryCapability
 from app.capabilities.builtin.capabilities_cap import CapabilityRegistryCapability
 from app.capabilities.builtin.repository_cap import RepositoryReadCapability
+from app.capabilities.builtin.obsidian_cap import ObsidianNoteCapability
 from app.memory.capabilities import (
     MemoryReadCapability,
     MemoryWriteCapability,
@@ -25,6 +26,7 @@ def register_builtins():
     capability_registry.register(RegistryCapability())
     capability_registry.register(CapabilityRegistryCapability())
     capability_registry.register(RepositoryReadCapability())
+    capability_registry.register(ObsidianNoteCapability())
     capability_registry.register(MemoryReadCapability())
     capability_registry.register(MemoryWriteCapability())
     capability_registry.register(MemoryConsolidateCapability())
