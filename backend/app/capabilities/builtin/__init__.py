@@ -22,6 +22,10 @@ from app.capabilities.builtin.browser_cap import (
     BrowserCaptureCapability,
 )
 from app.capabilities.builtin.research_cap import ResearchGatherCapability
+from app.capabilities.builtin.voice_cap import (
+    VoiceTranscribeCapability,
+    VoiceSpeakCapability,
+)
 from app.memory.capabilities import (
     MemoryReadCapability,
     MemoryWriteCapability,
@@ -49,6 +53,8 @@ def register_builtins():
     capability_registry.register(BrowserInteractCapability())
     capability_registry.register(BrowserCaptureCapability())
     capability_registry.register(ResearchGatherCapability())
+    capability_registry.register(VoiceTranscribeCapability())
+    capability_registry.register(VoiceSpeakCapability())
     capability_registry.register(MemoryReadCapability())
     capability_registry.register(MemoryWriteCapability())
     capability_registry.register(MemoryConsolidateCapability())
