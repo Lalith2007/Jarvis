@@ -15,6 +15,12 @@ from app.capabilities.builtin.computer_cap import (
     ComputerProcessCapability,
     ComputerClipboardCapability,
 )
+from app.capabilities.builtin.browser_cap import (
+    BrowserNavigateCapability,
+    BrowserExtractCapability,
+    BrowserInteractCapability,
+    BrowserCaptureCapability,
+)
 from app.memory.capabilities import (
     MemoryReadCapability,
     MemoryWriteCapability,
@@ -37,6 +43,10 @@ def register_builtins():
     capability_registry.register(ComputerTerminalCapability())
     capability_registry.register(ComputerProcessCapability())
     capability_registry.register(ComputerClipboardCapability())
+    capability_registry.register(BrowserNavigateCapability())
+    capability_registry.register(BrowserExtractCapability())
+    capability_registry.register(BrowserInteractCapability())
+    capability_registry.register(BrowserCaptureCapability())
     capability_registry.register(MemoryReadCapability())
     capability_registry.register(MemoryWriteCapability())
     capability_registry.register(MemoryConsolidateCapability())
