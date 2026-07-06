@@ -196,6 +196,56 @@ def _matches_any(goal_lower: str, patterns: list[str]) -> bool:
     return any(re.search(p, goal_lower) for p in patterns)
 
 
+# Capabilities handled by static groups or that are infrastructure — excluded
+# from dynamic selection (they are not user-selectable "action" tools).
+_DYNAMIC_EXCLUDE = {
+    "runtime.generate", "planner.plan", "executor.execute",
+    "registry.models", "registry.capabilities",
+    "memory.retrieve", "memory.store", "memory.consolidate",
+    "repository.read", "vault.search",
+}
+_DYNAMIC_EXCLUDE_PREFIXES = ("analyzer", "router", "reflector", "mission", "athena")
+
+
+def _dynamic_select(goal_lower: str, existing: set[str]) -> list[CapabilityRecommendation]:
+    """
+    Athena tool selection over the live CapabilityRegistry: recommend any
+    registered ACTION capability (browser/computer/social/research/voice, and
+    dynamically-registered MCP tools) whose id/name/tags share a meaningful
+    token with the query. This is what lets Athena plan with MCP capabilities
+    exactly like built-ins, without hardcoding each one.
+    """
+    from app.capabilities.registry import capability_registry
+
+    query_tokens = set(re.findall(r"[a-z]{4,}", goal_lower))
+    if not query_tokens:
+        return []
+
+    out: list[CapabilityRecommendation] = []
+    for manifest in capability_registry.list():
+        cid = manifest.id
+        if cid in existing or cid in _DYNAMIC_EXCLUDE:
+            continue
+        if any(cid.startswith(p + ".") for p in _DYNAMIC_EXCLUDE_PREFIXES):
+            continue
+        blob = f"{cid} {manifest.name} {' '.join(manifest.tags)}".lower()
+        cap_tokens = set(re.findall(r"[a-z]{4,}", blob))
+        if cap_tokens & query_tokens:
+            out.append(
+                CapabilityRecommendation(
+                    capability=cid,
+                    confidence=0.75,
+                    priority="medium",
+                    reason=f"Dynamic tool selection: query matches capability '{cid}'.",
+                    estimated_latency=500.0,
+                    estimated_cost=0.0,
+                    required=False,
+                    parallelizable=True,
+                )
+            )
+    return out
+
+
 class CapabilityEngine:
     """
     Semantic intent-driven capability planner.
@@ -249,12 +299,26 @@ class CapabilityEngine:
                         )
                     )
 
+        # ── 2.5 Dynamic tool selection over the registry (Athena tool planning)
+        # For non-grounding, non-conversational queries, let Athena select any
+        # registered action capability (browser/computer/social/research/voice
+        # or dynamically-registered MCP tools) that matches the query.
+        # Gate only on grounding: the token match is the real filter, so a
+        # greeting ("hello") adds nothing while "run a terminal command"
+        # (classified unknown) still selects computer.terminal.
+        dynamic: list[CapabilityRecommendation] = []
+        if not triggered_grounding:
+            dynamic = _dynamic_select(goal_lower, {r.capability for r in recommendations})
+            recommendations.extend(dynamic)
+
         # ── 3. Planner/executor for genuinely complex non-grounding tasks ─────
         # Do NOT add planner/executor when:
         #   a) Grounding capabilities are present (short, fast registry lookups).
         #   b) Intent is conversational/unknown (simple Q&A doesn't need a plan).
+        #   c) Dynamic tool selection already chose concrete capabilities.
         needs_planner = (
             not triggered_grounding
+            and not dynamic
             and intent not in _CONVERSATIONAL_INTENTS
         )
         if needs_planner:
