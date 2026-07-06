@@ -1,24 +1,29 @@
 from datetime import datetime
 from pathlib import Path
 
-# Change this later to your configurable vault location
-VAULT_PATH = Path.home() / "Documents" / "Obsidian"
-
-CONVERSATION_DIR = VAULT_PATH / "conversation"
+from app.config.settings import settings
 
 
 class ConversationWriter:
+    """Writes conversation logs into the configured vault (no hardcoded paths)."""
+
+    def _vault_root(self) -> Path:
+        if not settings.VAULT_PATH:
+            raise RuntimeError(
+                "No vault configured — set OBSIDIAN_VAULT/VAULT_PATH to write conversations."
+            )
+        return Path(settings.VAULT_PATH)
+
     def _today_file(self) -> Path:
         now = datetime.now()
-
         folder = (
-            CONVERSATION_DIR
+            self._vault_root()
+            / "jarvis"
+            / "conversations"
             / str(now.year)
             / f"{now.month:02d}"
         )
-
         folder.mkdir(parents=True, exist_ok=True)
-
         return folder / f"{now.date()}.md"
 
     def append(

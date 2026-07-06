@@ -1,7 +1,8 @@
+import os
 import tempfile
 from pathlib import Path
 
-from app.config.settings import settings
+from app.config.settings import BASE_DIR, settings
 
 
 class PermissionManager:
@@ -18,19 +19,23 @@ class PermissionManager:
     def __init__(self):
         raw_roots: list[Path] = []
 
-        vault = getattr(settings, "OBSIDIAN_VAULT", None) or getattr(
-            settings, "VAULT_PATH", None
+        # 1. Configured vault (env-driven, never hardcoded).
+        vault = getattr(settings, "VAULT_PATH", None) or getattr(
+            settings, "OBSIDIAN_VAULT", None
         )
         if vault:
             raw_roots.append(Path(vault))
 
-        raw_roots.extend(
-            [
-                (Path.home() / "Desktop"),
-                (Path.home() / "Documents"),
-                (Path.home() / "Downloads"),
-            ]
-        )
+        # 2. The JARVIS repository root (computed from BASE_DIR, not a literal) —
+        #    so repository.read and repo-relative tools work anywhere the repo lives.
+        raw_roots.append(BASE_DIR.parent)
+
+        # 3. Extra workspaces from the environment (comma-separated), so the
+        #    allowed surface is configurable per install with no hardcoded paths.
+        for entry in os.getenv("JARVIS_ALLOWED_ROOTS", "").split(","):
+            entry = entry.strip()
+            if entry:
+                raw_roots.append(Path(entry).expanduser())
 
         # System temp dir — pytest and tooling write here.  On macOS
         # gettempdir() may be /var/... while resolved paths are /private/var/...
