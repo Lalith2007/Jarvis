@@ -26,6 +26,16 @@ def _validate_config() -> None:
 
         threading.Thread(target=provider_registry.probe_health, daemon=True).start()
 
+    # Bind the keyless research provider so grounded research works out of the
+    # box (no API key required).
+    try:
+        from app.research.provider import research_manager
+        from app.research.duckduckgo import DuckDuckGoProvider
+
+        research_manager.set_provider(DuckDuckGoProvider())
+    except Exception:
+        pass
+
     # Recover missions left in-flight by a previous process (Sprint 13.9).
     try:
         from app.mission.store import mission_store
