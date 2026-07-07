@@ -35,5 +35,9 @@ class PromptContext(BaseModel):
     # Timestamp
     created_at: datetime = Field(default_factory=datetime.now)
 
+    # When True, MessageBuilder injects a strict grounding override directive.
+    # Set by ContextBuilder when any grounding capability output is present.
+    grounding_enforced: bool = False
+
     # Context schema version
     version: str = "0.3"

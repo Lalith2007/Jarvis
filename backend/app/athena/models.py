@@ -120,7 +120,10 @@ class AthenaDecision(BaseModel):
     
     risk_level: str
     reasoning_summary: str
-    
+    # Set when PolicyEngine rejects the request; runtime.generate reports this
+    # instead of answering ungrounded from prior knowledge.
+    policy_rejection: Optional[str] = None
+
     token_budget: int
     latency_budget_ms: float
     cost_budget: float

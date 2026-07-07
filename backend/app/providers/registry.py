@@ -151,5 +151,51 @@ class ProviderRegistry:
             and model.healthy
         ]
 
+    def probe_health(self, timeout: float = 8.0) -> dict[str, bool]:
+        """
+        Live health check: ping each enabled model with a 1-token chat and set
+        `healthy` from the real result. This replaces the previously-hardcoded
+        `healthy=True` so routing never selects a model that does not respond.
+
+        Makes network calls — call at startup (env-gated) or on demand, not in
+        the hot path. Returns {model_id: healthy}.
+        """
+        import logging
+
+        from openai import OpenAI
+
+        from app.config.settings import settings
+
+        logger = logging.getLogger(__name__)
+        client = OpenAI(
+            base_url=settings.BASE_URL,
+            api_key=settings.NVIDIA_API_KEY,
+            timeout=timeout,
+            max_retries=0,
+        )
+        import time
+
+        results: dict[str, bool] = {}
+        for model in self._models.values():
+            if not model.enabled:
+                results[model.id] = False
+                continue
+            t0 = time.perf_counter()
+            try:
+                resp = client.chat.completions.create(
+                    model=model.id,
+                    messages=[{"role": "user", "content": "ping"}],
+                    max_tokens=1,
+                )
+                # A model that responds but returns empty choices is unhealthy.
+                model.healthy = bool(resp.choices)
+                model.avg_latency_ms = round((time.perf_counter() - t0) * 1000, 1)
+            except Exception as exc:  # noqa: BLE001 — any failure => unhealthy
+                model.healthy = False
+                model.avg_latency_ms = None
+                logger.warning("Model %s failed health probe: %s", model.id, exc)
+            results[model.id] = model.healthy
+        return results
+
 
 provider_registry = ProviderRegistry()

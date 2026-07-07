@@ -50,3 +50,20 @@ build/
 # ==========================
 node_modules/
 .next/
+
+# ==========================
+# Vendored sub-apps (unrelated third-party projects; not part of the backend/frontend build)
+# ==========================
+ai-youtube-shorts-generator/
+omnivoice-studio/
+openshorts/
+vibevoice/
+
+# ==========================
+# Ad-hoc dumps / scratch
+# ==========================
+scratch/
+git_diff.txt
+git_status.txt
+*_results.txt
+*_deps.txt

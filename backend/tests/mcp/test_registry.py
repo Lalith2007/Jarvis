@@ -10,7 +10,8 @@ def test_mcp_registration_discovery():
     
     client = mcp_manager.get_client("TestMCP")
     assert client is not None
-    assert client.get_status() == "connected"
+    from app.mcp.models import MCPConnectionStatus
+    assert client.get_status() == MCPConnectionStatus.READY
     
     mcp_manager.remove_server("TestMCP")
     assert mcp_registry.get_server("TestMCP") is None

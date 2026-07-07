@@ -96,6 +96,19 @@ class ReflectionOrchestrator:
                 suggestions=all_suggestions
             )
             
+            # Automatic reflection storage (Sprint 13.3): persist lessons as a
+            # PROCEDURAL long-term memory so the system learns across missions.
+            # Offloaded to a daemon thread so persistence I/O never inflates the
+            # reflection compute path.
+            if all_lessons or all_suggestions:
+                import threading
+
+                threading.Thread(
+                    target=self._store_reflection_memory,
+                    args=(mission_id, all_lessons, all_suggestions),
+                    daemon=True,
+                ).start()
+
             EventPublisher.publish(
                 subsystem="reflection",
                 event_type="ReflectionCompleted",
@@ -115,5 +128,35 @@ class ReflectionOrchestrator:
                 payload={"error": str(e)}
             )
             return None
+
+    def _store_reflection_memory(self, mission_id: str, lessons, suggestions) -> None:
+        """Persist reflection lessons as a procedural long-term memory (best-effort)."""
+        if not lessons and not suggestions:
+            return
+        try:
+            from app.memory.engine import memory_engine
+            from app.memory.core.models import MemoryRecord, MemoryType, MemoryImportance
+
+            def _text(x):
+                return getattr(x, "text", None) or getattr(x, "description", None) or str(x)
+
+            body = "\n".join(
+                [f"- Lesson: {_text(l)}" for l in lessons]
+                + [f"- Suggestion: {_text(s)}" for s in suggestions]
+            )
+            memory_engine.store(
+                MemoryRecord(
+                    type=MemoryType.PROCEDURAL,
+                    importance=MemoryImportance.NORMAL,
+                    title=f"Reflection: mission {mission_id[:8]}",
+                    summary=f"{len(lessons)} lessons, {len(suggestions)} suggestions.",
+                    content=body,
+                    tags=["reflection", "learned"],
+                    source="reflection",
+                )
+            )
+        except Exception as exc:  # reflection is always best-effort
+            logger.debug("reflection memory store skipped: %s", exc)
+
 
 reflection_orchestrator = ReflectionOrchestrator()

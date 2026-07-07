@@ -1,6 +1,6 @@
 import time
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.capabilities.core.base import BaseCapability
 from app.capabilities.core.models import CapabilityContext, CapabilityResult, CapabilityDiagnostics
@@ -17,9 +17,11 @@ class CapabilityExecutorLifecycle:
     
     def execute(self, capability: BaseCapability, context: CapabilityContext) -> CapabilityResult:
         diagnostics = CapabilityDiagnostics(
-            initialized_at=datetime.utcnow()
+            initialized_at=datetime.now(timezone.utc)
         )
-        
+        # Defined up front so metrics recording works even if initialize/validate raises.
+        start_time = time.time()
+
         EventPublisher.publish(
             subsystem="capabilities",
             event_type="CapabilityInitialized",
@@ -36,7 +38,7 @@ class CapabilityExecutorLifecycle:
             diagnostics.execution_trace.append("Validation passed.")
             
             # 3. Execute
-            diagnostics.started_at = datetime.utcnow()
+            diagnostics.started_at = datetime.now(timezone.utc)
             EventPublisher.publish(
                 subsystem="capabilities",
                 event_type="CapabilityStarted",
@@ -49,7 +51,7 @@ class CapabilityExecutorLifecycle:
             
             # 4. Metrics & Diagnostics
             result.execution_time = execution_time
-            diagnostics.completed_at = datetime.utcnow()
+            diagnostics.completed_at = datetime.now(timezone.utc)
             diagnostics.execution_trace.append(f"Execution completed in {execution_time:.3f}s.")
             result.diagnostics = diagnostics
             
@@ -58,20 +60,22 @@ class CapabilityExecutorLifecycle:
                 event_type="CapabilityCompleted",
                 payload={"capability_id": capability.id, "mission_id": context.mission_id, "success": result.success}
             )
-            
+
+            self._record_metrics(capability, result.success, execution_time * 1000)
             return result
-            
+
         except Exception as e:
             diagnostics.exceptions.append(str(e))
             diagnostics.execution_trace.append(f"Execution failed: {e}")
             logger.error(f"Capability {capability.id} failed: {e}", exc_info=True)
-            
+
             EventPublisher.publish(
                 subsystem="capabilities",
                 event_type="CapabilityFailed",
                 payload={"capability_id": capability.id, "mission_id": context.mission_id, "error": str(e)}
             )
-            
+
+            self._record_metrics(capability, False, (time.time() - start_time) * 1000)
             return CapabilityResult(
                 success=False,
                 status="failed",
@@ -100,5 +104,14 @@ class CapabilityExecutorLifecycle:
                     )
             except Exception as e:
                 logger.error(f"Capability {capability.id} health check failed: {e}", exc_info=True)
+
+    @staticmethod
+    def _record_metrics(capability: BaseCapability, success: bool, latency_ms: float) -> None:
+        """Record execution metrics in the registry (Sprint 13.1 observability)."""
+        try:
+            from app.capabilities.registry import capability_registry
+            capability_registry.record_metrics(capability.id, success, latency_ms)
+        except Exception as exc:  # metrics must never break execution
+            logger.debug("metrics recording skipped for %s: %s", capability.id, exc)
 
 capability_lifecycle = CapabilityExecutorLifecycle()

@@ -58,6 +58,10 @@ class ProviderModel(BaseModel):
 
     healthy: bool = True
 
+    # Measured mean response latency (ms) from the last health probe; None until
+    # probed. Used by ModelRankingEngine to prefer responsive models.
+    avg_latency_ms: float | None = None
+
     capabilities: list[ProviderCapability] = Field(
         default_factory=list
     )

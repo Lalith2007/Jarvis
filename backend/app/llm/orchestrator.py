@@ -102,7 +102,11 @@ class LLMOrchestrator:
         if getattr(recommendation, 'estimated_latency', None) is not None:
             metadata_lines.append(f"Estimated Latency: {recommendation.estimated_latency}s")
 
-        if context and getattr(context, 'metadata', None):
+        if context and getattr(context, "metadata", None):
+            if context.metadata.get("selected_model"):
+                metadata_lines.append(
+                    f"Active Model (authoritative): {context.metadata['selected_model']}"
+                )
             if context.metadata.get("mission_id"):
                 metadata_lines.append(f"Mission ID: {context.metadata['mission_id']}")
             if context.metadata.get("session_id"):

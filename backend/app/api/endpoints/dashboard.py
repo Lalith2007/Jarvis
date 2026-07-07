@@ -17,6 +17,6 @@ def get_dashboard_snapshot():
         "missions": [m.model_dump() for m in mission_service.all()],
         "mcp_servers": [s.model_dump() for s in mcp_registry.list_servers()],
         "runtime_sessions": [s.model_dump() for s in runtime_manager._active_sessions.values()],
-        "capabilities": capability_registry.get_all(),
+        "capabilities": [cap.model_dump() for cap in capability_registry.list()],
         "models": [p.model_dump() for p in model_registry.all().values()]
     }

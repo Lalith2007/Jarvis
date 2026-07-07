@@ -72,8 +72,10 @@ export function CapabilitiesPanel() {
 }
 
 export function ProjectPanel() {
+  const { data } = useDashboardSnapshot();
+  // In the future, projects will come from data.projects
   return (
-    <Panel title="Current project" icon={<BriefcaseBusiness size={15} />} action={<button className="text-button">Open project</button>}>
+    <Panel title="Current project" icon={<BriefcaseBusiness size={15} />}>
       <div className="empty-state"><b>No active project</b><p>Projects subsystem pending.</p></div>
     </Panel>
   );
@@ -272,13 +274,12 @@ export function BottomPanels() {
       ]
     : [["Backend offline", "—"]];
 
+  // Docker moved to the Runtime page (left bar) to keep the dashboard clean.
   const bottomData = [
     { title: "Running processes", icon: Radio, value: String(system?.topProcesses?.length ?? 0), rows: topProcessRows },
-    { title: "Docker containers", icon: Boxes, value: String(system?.dockerContainers?.length ?? 0), rows: dockerRows },
     { title: "GPU monitor", icon: Gauge, value: gpu?.utilizationPercent != null ? `${Math.round(gpu.utilizationPercent)}%` : "—", rows: gpuRows },
     { title: "Filesystem", icon: FolderCog, value: String(system?.disks?.length ?? 0), rows: diskRows },
     { title: "Network I/O", icon: Network, value: data?.system ? "Live" : "—", rows: networkRows },
-    { title: "Upcoming automation", icon: CalendarClock, value: "4", rows: [["Backup database", "11:00"], ["Weekly report", "13:00"], ["Data sync", "16:00"], ["System cleanup", "21:00"]] as [string, string][] },
   ];
 
   return (

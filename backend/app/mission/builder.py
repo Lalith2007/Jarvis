@@ -22,6 +22,7 @@ class MissionGraphBuilder:
             "mission_id": mission.mission_id,
             "execution_id": mission.execution_id,
             "goal": mission.goal,
+            "stream": mission.metadata.get("stream", False),
         }
         
         # 1. Invoke Athena Orcherstrator for Strategic Planning
@@ -55,23 +56,43 @@ class MissionGraphBuilder:
             return node
             
         last_deps = []
-        
-        # Add pre-planning nodes (e.g. Memory Retrieval)
+
+        # Serialise the decision once; runtime.generate node embeds it so that
+        # CapabilityManager can forward it to CapabilityContext and eliminate
+        # the redundant second Athena routing call.
+        decision_dict = decision.model_dump()
+
+        # Add pre-planning nodes (e.g. Memory Retrieval).
+        # Track it so the recommended_capabilities loop below does not create a
+        # second, duplicate memory.retrieve node when the capability engine also
+        # recommends memory grounding.
+        memory_node_added = False
         if decision.requires_memory and decision.memory_plan.retrieval_required:
             mem_node = create_node("memory.retrieve", NodeType.MEMORY, [])
             last_deps = [mem_node.id]
-            
+            memory_node_added = True
+
         # Add Capability Nodes (Planning, Execution)
         for cap in decision.recommended_capabilities:
+            # Skip a duplicate memory.retrieve already added from the memory plan.
+            if cap.capability == "memory.retrieve" and memory_node_added:
+                continue
+
             node_type = NodeType.TOOL
             if cap.capability == "planner.plan":
                 node_type = NodeType.PLANNER
-                
+
+            node_metadata: dict = {"budget": decision.latency_budget_ms}
+            # Embed the AthenaDecision only in runtime.generate so the LLM
+            # orchestrator can use the pre-computed model ranking.
+            if cap.capability == "runtime.generate":
+                node_metadata["athena_decision"] = decision_dict
+
             node = create_node(
-                capability=cap.capability, 
-                node_type=node_type, 
+                capability=cap.capability,
+                node_type=node_type,
                 deps=last_deps.copy(),
-                metadata={"budget": decision.latency_budget_ms}
+                metadata=node_metadata,
             )
             
             # If sequential, this node becomes the dependency for the next
@@ -90,10 +111,9 @@ class MissionGraphBuilder:
         if decision.requires_reflection:
             reflect_node = create_node("mission.reflect", NodeType.AGGREGATOR, last_deps.copy())
             last_deps = [reflect_node.id]
-            
-        return MissionGraph(
-            graph_id=graph_id,
-            nodes=nodes,
-        )
+
+        graph = MissionGraph(graph_id=graph_id, nodes=nodes)
+        graph.athena_decision = decision_dict
+        return graph
 
 mission_graph_builder = MissionGraphBuilder()

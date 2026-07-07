@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from app.security.permissions import permissions
 from app.tools.base import BaseTool
 from app.tools.models import ToolCall, ToolResult
@@ -30,14 +28,13 @@ class WriteFileTool(BaseTool):
                 output="Missing required argument: content",
             )
 
-        # Permission check
-        if not permissions.allowed(path):
+        # Permission check — resolve-then-validate, operate on resolved path.
+        file = permissions.resolve_if_allowed(path)
+        if file is None:
             return ToolResult(
                 success=False,
                 output="Access denied.",
             )
-
-        file = Path(path)
 
         file.parent.mkdir(
             parents=True,

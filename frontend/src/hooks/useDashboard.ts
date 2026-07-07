@@ -13,7 +13,8 @@ export function useDashboardSnapshot() {
       // Map once at the boundary; all consumers receive camelCase
       return mapDashboardResponse(response.data);
     },
-    staleTime: Infinity,
-    refetchOnWindowFocus: false,
+    staleTime: 2000,
+    refetchInterval: 2000,
+    refetchOnWindowFocus: true,
   });
 }

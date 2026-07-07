@@ -1,8 +1,9 @@
 import logging
+from datetime import datetime, timezone
 from typing import Dict, List, Any
 
 from app.capabilities.core.base import BaseCapability
-from app.capabilities.core.models import CapabilityManifest
+from app.capabilities.core.models import CapabilityManifest, CapabilityMetrics
 
 
 logger = logging.getLogger(__name__)
@@ -11,10 +12,12 @@ logger = logging.getLogger(__name__)
 class CapabilityRegistry:
     """
     Centralized Capability Registry for JARVIS.
-    Supports discovery, dependency resolution, version tracking, and health reporting.
+    Supports discovery, dependency resolution, version tracking, health
+    reporting, and per-capability execution metrics (Sprint 13.1 observability).
     """
     def __init__(self):
         self._capabilities: Dict[str, BaseCapability] = {}
+        self._metrics: Dict[str, CapabilityMetrics] = {}
 
     def register(self, capability: BaseCapability) -> None:
         """
@@ -92,11 +95,42 @@ class CapabilityRegistry:
         """
         return [cap.manifest for cap in self._capabilities.values()]
 
+    def ids(self) -> List[str]:
+        """Return all registered capability IDs."""
+        return list(self._capabilities.keys())
+
     def health(self) -> Dict[str, str]:
         """
         Returns health status of all capabilities.
         """
         return {cap.id: cap.health_check() for cap in self._capabilities.values()}
+
+    def record_metrics(
+        self, capability_id: str, success: bool, latency_ms: float, cost: float = 0.0
+    ) -> None:
+        """
+        Update rolling execution metrics for a capability. Called by the
+        capability lifecycle after every execution (success or failure).
+        """
+        m = self._metrics.get(capability_id)
+        if m is None:
+            m = CapabilityMetrics()
+            self._metrics[capability_id] = m
+        n = m.execution_count
+        m.execution_count = n + 1
+        if not success:
+            m.failure_count += 1
+        # Rolling means
+        m.average_latency = (m.average_latency * n + latency_ms) / (n + 1)
+        m.average_cost = (m.average_cost * n + cost) / (n + 1)
+        m.last_execution = datetime.now(timezone.utc)
+        # Health score = success rate * 100
+        ok = m.execution_count - m.failure_count
+        m.health_score = round((ok / m.execution_count) * 100, 1)
+
+    def metrics(self) -> Dict[str, CapabilityMetrics]:
+        """Return execution metrics keyed by capability id."""
+        return dict(self._metrics)
 
     def get(self, capability_id: str) -> BaseCapability:
         if capability_id not in self._capabilities:

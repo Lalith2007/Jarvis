@@ -49,6 +49,10 @@ class MissionService:
 
         return list(self._missions.values())
 
+    def _checkpoint(self, mission: Mission) -> None:
+        from app.mission.store import mission_store
+        mission_store.checkpoint(mission)
+
     def update_status(
         self,
         mission: Mission,
@@ -57,6 +61,24 @@ class MissionService:
 
         mission.status = status
         mission.updated_at = datetime.now()
+        self._checkpoint(mission)
+
+    def pause(self, mission: Mission) -> None:
+        mission.status = MissionStatus.WAITING
+        mission.updated_at = datetime.now()
+        mission.metadata["paused"] = True
+        self._checkpoint(mission)
+
+    def resume(self, mission: Mission) -> None:
+        mission.metadata.pop("paused", None)
+        mission.status = MissionStatus.EXECUTING
+        mission.updated_at = datetime.now()
+        self._checkpoint(mission)
+
+    def cancel(self, mission: Mission) -> None:
+        mission.status = MissionStatus.CANCELLED
+        mission.updated_at = datetime.now()
+        self._checkpoint(mission)
 
     def add_execution(
         self,
@@ -79,6 +101,7 @@ class MissionService:
 
         mission.result.success = success
         mission.result.response = response
+        self._checkpoint(mission)
 
     def fail(
         self,
@@ -91,6 +114,7 @@ class MissionService:
 
         mission.result.success = False
         mission.result.response = response
+        self._checkpoint(mission)
 
     def remove(
         self,

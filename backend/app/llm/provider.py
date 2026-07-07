@@ -20,6 +20,10 @@ class LLMProvider:
         self.client = OpenAI(
             base_url=settings.BASE_URL,
             api_key=settings.NVIDIA_API_KEY,
+            # Bound every request so a slow/stuck provider can never hang the
+            # pipeline (and the test suite) indefinitely.
+            timeout=settings.LLM_TIMEOUT,
+            max_retries=settings.LLM_MAX_RETRIES,
         )
 
     def chat(
@@ -33,6 +37,9 @@ class LLMProvider:
             model=model,
             messages=messages,
         )
+
+        if not response.choices:
+            raise ValueError(f"Provider returned empty choices for model {model}")
 
         content = response.choices[0].message.content
 

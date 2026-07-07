@@ -1,5 +1,4 @@
-from pathlib import Path
-
+from app.security.permissions import permissions
 from app.tools.base import BaseTool
 from app.tools.models import ToolCall, ToolResult
 
@@ -26,7 +25,13 @@ class ListDirectoryTool(BaseTool):
                 output="Missing required argument: path",
             )
 
-        directory = Path(path)
+        # Permission check — resolve-then-validate (previously ungated).
+        directory = permissions.resolve_if_allowed(path)
+        if directory is None:
+            return ToolResult(
+                success=False,
+                output="Access denied.",
+            )
 
         if not directory.exists():
             return ToolResult(

@@ -64,9 +64,15 @@ class AthenaOrchestrator:
         # 7. Policy Evaluation
         approved, reason = self.policy_engine.evaluate(risk, capabilities, token_budget)
         trace.append(f"Policy evaluated: {approved} - {reason}")
+        policy_rejection = None
         if not approved:
-            # If policy rejects, we wipe capabilities to block execution graph
-            capabilities = []
+            # If policy rejects, we wipe capabilities to block execution graph,
+            # except we must keep runtime.generate so it can report the rejection.
+            capabilities = [c for c in capabilities if c.capability == "runtime.generate"]
+            policy_rejection = (
+                f"This request was blocked by policy ({reason}). "
+                "I will not proceed with ungrounded generation."
+            )
             
         # 8. Execution Strategy
         strategy = ExecutionStrategy.sequential
@@ -96,6 +102,7 @@ class AthenaOrchestrator:
             requires_tools=len(capabilities) > 0,
             risk_level=risk,
             reasoning_summary="Deterministic heuristics completed successfully." if overall_confidence >= settings.ATHENA_CONFIDENCE_THRESHOLD else "LLM Fallback completed.",
+            policy_rejection=policy_rejection,
             token_budget=token_budget,
             latency_budget_ms=latency_budget_ms,
             cost_budget=cost_budget,

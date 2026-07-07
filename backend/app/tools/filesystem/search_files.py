@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from app.security.permissions import permissions
 from app.tools.base import BaseTool
 from app.tools.models import ToolCall, ToolResult
@@ -34,13 +32,12 @@ class SearchFilesTool(BaseTool):
                 output="Missing required argument: pattern",
             )
 
-        if not permissions.allowed(path):
+        root = permissions.resolve_if_allowed(path)
+        if root is None:
             return ToolResult(
                 success=False,
                 output="Access denied.",
             )
-
-        root = Path(path)
 
         if not root.exists():
             return ToolResult(

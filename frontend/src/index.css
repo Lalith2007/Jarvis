@@ -245,6 +245,25 @@ code { color: var(--cyan-bright); background: rgba(0, 199, 255, .08); border: 1p
 .chat-composer { min-height: 39px; margin: 0 8px 8px; display: flex; align-items: center; padding: 2px 3px; border: 1px solid var(--line); border-radius: 4px; background: rgba(0,8,14,.7); }
 .chat-composer label { flex: 1; min-width: 0; }.chat-composer input { width: 100%; border: 0; outline: 0; background: transparent; color: var(--text); font-size: 9px; }.chat-composer input::placeholder { color: var(--text-muted); }.send-button { width: 28px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 3px; background: var(--cyan); color: #00141d; }.send-button:disabled { opacity: .28; cursor: not-allowed; }.send-button.cancel { background: rgba(255,77,109,.18); border: 1px solid rgba(255,77,109,.35); color: var(--red); font-size: 10px; }
 .typing-cursor { display: inline-block; width: 6px; height: 1em; margin-left: 2px; vertical-align: text-bottom; background: var(--cyan-bright); border-radius: 1px; animation: blink 0.8s steps(1) infinite; opacity: 0.85; }
+/* Rendered markdown inside assistant chat messages */
+.chat-markdown { margin-top: 2px; color: #9bb1bd; font-size: 8px; line-height: 1.5; }
+.chat-full .chat-markdown { font-size: 12px; max-width: 78ch; }
+.chat-markdown > *:first-child { margin-top: 0; }
+.chat-markdown > *:last-child { margin-bottom: 0; }
+.chat-markdown p { margin: 0 0 .5em; color: inherit; font-size: inherit; line-height: 1.5; }
+.chat-markdown strong { color: var(--text); font-weight: 700; }
+.chat-markdown a { color: var(--cyan-bright); text-decoration: underline; }
+.chat-markdown ul, .chat-markdown ol { margin: .35em 0 .6em; padding-left: 1.3em; }
+.chat-markdown li { margin: .15em 0; }
+.chat-markdown h1, .chat-markdown h2, .chat-markdown h3 { color: var(--text); margin: .6em 0 .3em; font-size: 1.15em; font-weight: 700; text-transform: none; }
+.chat-markdown code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; background: rgba(0,200,255,.08); border: 1px solid rgba(27,145,190,.18); border-radius: 3px; padding: 0 3px; font-size: .92em; color: var(--cyan-bright); }
+.chat-markdown pre { background: rgba(0,8,14,.75); border: 1px solid var(--line); border-radius: 5px; padding: 8px 10px; overflow-x: auto; margin: .5em 0; }
+.chat-markdown pre code { background: none; border: 0; padding: 0; color: #cfe3ee; }
+.chat-markdown blockquote { margin: .4em 0; padding-left: .7em; border-left: 2px solid rgba(27,145,190,.35); color: var(--text-muted); }
+.chat-markdown table { border-collapse: collapse; margin: .5em 0; width: 100%; display: block; overflow-x: auto; }
+.chat-markdown th, .chat-markdown td { border: 1px solid rgba(27,145,190,.22); padding: 4px 8px; text-align: left; vertical-align: top; }
+.chat-markdown thead th { background: rgba(0,200,255,.08); color: var(--text); font-weight: 700; }
+.chat-markdown tbody tr:nth-child(even) { background: rgba(255,255,255,.02); }
 .streaming-badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 5px; border: 1px solid rgba(0,200,255,.3); border-radius: 3px; background: rgba(0,200,255,.07); color: var(--cyan); font-size: 7px; text-transform: uppercase; animation: pulse 1.2s ease-in-out infinite; }
 .terminal-log b.info { color: var(--cyan) !important; }
 
