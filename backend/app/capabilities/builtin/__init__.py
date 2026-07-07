@@ -31,6 +31,7 @@ from app.capabilities.builtin.vault_cap import VaultSearchCapability
 from app.capabilities.builtin.python_cap import PythonExecuteCapability
 from app.capabilities.builtin.github_cap import GithubCommitCapability
 from app.capabilities.builtin.productivity_cap import CalendarCreateCapability, EmailComposeCapability
+from app.capabilities.builtin.vision_cap import VisionOcrCapability, VisionDescribeCapability
 from app.memory.capabilities import (
     MemoryReadCapability,
     MemoryWriteCapability,
@@ -66,6 +67,8 @@ def register_builtins():
     capability_registry.register(GithubCommitCapability())
     capability_registry.register(CalendarCreateCapability())
     capability_registry.register(EmailComposeCapability())
+    capability_registry.register(VisionOcrCapability())
+    capability_registry.register(VisionDescribeCapability())
     capability_registry.register(MemoryReadCapability())
     capability_registry.register(MemoryWriteCapability())
     capability_registry.register(MemoryConsolidateCapability())
