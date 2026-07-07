@@ -274,9 +274,9 @@ export function BottomPanels() {
       ]
     : [["Backend offline", "—"]];
 
+  // Docker moved to the Runtime page (left bar) to keep the dashboard clean.
   const bottomData = [
     { title: "Running processes", icon: Radio, value: String(system?.topProcesses?.length ?? 0), rows: topProcessRows },
-    { title: "Docker containers", icon: Boxes, value: String(system?.dockerContainers?.length ?? 0), rows: dockerRows },
     { title: "GPU monitor", icon: Gauge, value: gpu?.utilizationPercent != null ? `${Math.round(gpu.utilizationPercent)}%` : "—", rows: gpuRows },
     { title: "Filesystem", icon: FolderCog, value: String(system?.disks?.length ?? 0), rows: diskRows },
     { title: "Network I/O", icon: Network, value: data?.system ? "Live" : "—", rows: networkRows },
