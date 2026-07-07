@@ -15,61 +15,58 @@ app = FastAPI(
 
 @app.on_event("startup")
 def _validate_config() -> None:
+    import logging
+    logger = logging.getLogger("jarvis.startup")
+    logger.setLevel(logging.INFO)
+    if not logger.handlers:
+        ch = logging.StreamHandler()
+        ch.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        logger.addHandler(ch)
+
+    logger.info("STAGE 1: settings.validate()")
     settings.validate()
-    # Optionally probe model health in the background so routing avoids models
-    # that don't respond. Off by default (keeps startup fast / tests hermetic);
-    # enable in production with JARVIS_PROBE_ON_STARTUP=1.
+    
+    logger.info("STAGE 2: model health probes (background)")
     if os.getenv("JARVIS_PROBE_ON_STARTUP") == "1":
         import threading
-
         from app.providers.registry import provider_registry
-
         threading.Thread(target=provider_registry.probe_health, daemon=True).start()
 
-    # Bind local system TTS (macOS `say`) so voice output works out of the box,
-    # no weights/cloud. STT / richer TTS come from OmniVoice/VibeVoice via MCP.
+    logger.info("STAGE 3: voice initialization")
     try:
         from app.voice.driver import voice_manager
         from app.voice.system_driver import SystemVoiceDriver
-
         drv = SystemVoiceDriver()
         if drv.available():
             voice_manager.set_driver(drv)
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning(f"Voice init failed: {e}")
 
-    # Bind the keyless research provider so grounded research works out of the
-    # box (no API key required).
+    logger.info("STAGE 4: research initialization")
     try:
         from app.research.provider import research_manager
         from app.research.duckduckgo import DuckDuckGoProvider
-
         research_manager.set_provider(DuckDuckGoProvider())
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning(f"Research init failed: {e}")
 
-    # Auto-connect configured MCP servers (Voice/Social/etc.) so their tools
-    # register as capabilities — config-driven, no bespoke per-service code.
+    logger.info("STAGE 5: MCP autoconnect")
     try:
         from app.mcp.config import autoconnect
-
         autoconnect()
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning(f"MCP autoconnect failed: {e}")
 
-    # Recover missions left in-flight by a previous process (Sprint 13.9).
+    logger.info("STAGE 6: mission recovery")
     try:
         from app.mission.store import mission_store
-
         recovered = mission_store.recover_incomplete()
         if recovered:
-            import logging
-
-            logging.getLogger(__name__).info(
-                "Recovered %d in-flight mission(s) after restart", len(recovered)
-            )
-    except Exception:
-        pass
+            logger.info("Recovered %d in-flight mission(s) after restart", len(recovered))
+    except Exception as e:
+        logger.warning(f"Mission recovery failed: {e}")
+        
+    logger.info("STAGE 7: application startup complete")
 
 app.add_middleware(
     CORSMiddleware,

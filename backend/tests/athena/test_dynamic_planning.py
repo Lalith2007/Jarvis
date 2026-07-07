@@ -33,9 +33,11 @@ def test_dynamic_does_not_fire_for_grounding_queries():
 class _FakeT(MCPTransport):
     def __init__(self): super().__init__("fake")
     def connect(self):
-        self.status = MCPConnectionStatus.CONNECTED; return True
-    def send(self, data):
+        self.status = MCPConnectionStatus.READY; return True
+    def send(self, data: str, message_id: str | None = None, wait_for_response: bool = True, timeout: float = 10.0) -> str:
         req = json.loads(data); m, rid = req.get("method"), req.get("id")
+        if m == "initialize":
+            return json.dumps({"id": rid, "result": {"protocolVersion": "1.0"}})
         if m == "tools/list":
             return json.dumps({"id": rid, "result": {"tools": [
                 {"name": "translate", "description": "Translate text"}]}})
@@ -43,8 +45,16 @@ class _FakeT(MCPTransport):
 
 
 def test_mcp_tool_is_dynamically_selectable():
+    import time
     # An MCP tool, once registered, becomes selectable by Athena like a builtin.
     mcp_manager.connect(MCPServerConfig(name="lingo", command="x"), transport=_FakeT())
+    
+    # Wait for background thread to register tools
+    for _ in range(20):
+        if len(mcp_manager._tool_caps.get("lingo", [])) > 0:
+            break
+        time.sleep(0.05)
+        
     try:
         assert "mcp.lingo.translate" in _caps("please translate this paragraph")
     finally:

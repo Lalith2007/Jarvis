@@ -21,10 +21,10 @@ class FakeMCPTransport(MCPTransport):
         super().__init__(endpoint="fake")
 
     def connect(self):
-        self.status = MCPConnectionStatus.CONNECTED
+        self.status = MCPConnectionStatus.READY
         return True
 
-    def send(self, data: str) -> str:
+    def send(self, data: str, message_id: str | None = None, wait_for_response: bool = True, timeout: float = 10.0) -> str:
         req = json.loads(data)
         method, rid = req.get("method"), req.get("id")
         if method == "initialize":
@@ -49,9 +49,17 @@ def _ctx(state):
 
 
 def test_mcp_tools_register_as_capabilities_and_execute_and_unload():
+    import time
     cfg = MCPServerConfig(name="fakemcp", transport="stdio", command="unused")
-    cap_ids = mcp_manager.connect(cfg, transport=FakeMCPTransport())
+    mcp_manager.connect(cfg, transport=FakeMCPTransport())
 
+    # Wait for background thread to register tools
+    for _ in range(20):
+        if len(mcp_manager._tool_caps.get("fakemcp", [])) == 2:
+            break
+        time.sleep(0.05)
+
+    cap_ids = mcp_manager._tool_caps.get("fakemcp", [])
     # Both tools became capabilities with the mcp.<server>.<tool> convention.
     assert set(cap_ids) == {"mcp.fakemcp.echo", "mcp.fakemcp.add"}
     for cid in cap_ids:
@@ -68,6 +76,7 @@ def test_mcp_tools_register_as_capabilities_and_execute_and_unload():
     assert capability_registry.metrics()["mcp.fakemcp.echo"].execution_count >= 1
 
     # Health probe works.
+    cap.validate(_ctx({}))
     assert cap.health_check() == "healthy"
 
     # Hot unload: removing the server unregisters its capabilities.
@@ -80,6 +89,6 @@ def test_legacy_register_server_still_works():
     mcp_manager.register_server("LegacyMCP", "http://localhost:9999", ["tool_usage"])
     client = mcp_manager.get_client("LegacyMCP")
     assert client is not None
-    assert client.get_status() == "connected"
+    assert client.get_status() == MCPConnectionStatus.READY
     mcp_manager.remove_server("LegacyMCP")
     assert mcp_manager.get_client("LegacyMCP") is None

@@ -23,8 +23,8 @@ from app.mcp.models import MCPTool
 
 
 class MCPToolCapability(BaseCapability):
-    def __init__(self, client: MCPClient, tool: MCPTool, permissions: list[str] | None = None):
-        self._client = client
+    def __init__(self, server_name: str, tool: MCPTool, permissions: list[str] | None = None):
+        self._server_name = server_name
         self._tool = tool
         manifest = CapabilityManifest(
             id=f"mcp.{tool.server}.{tool.name}",
@@ -43,19 +43,27 @@ class MCPToolCapability(BaseCapability):
         pass
 
     def validate(self, context: CapabilityContext) -> None:
-        pass
+        from app.mcp.manager import mcp_manager
+        client = mcp_manager.get_client(self._server_name)
+        if not client:
+            raise RuntimeError(f"MCP Server {self._server_name} client not found.")
+        if client.get_status() != "ready":
+            raise RuntimeError(f"MCP Server {self._server_name} is not ready, status: {client.get_status()}.")
 
     def execute(
         self, context: CapabilityContext, diagnostics: CapabilityDiagnostics
     ) -> CapabilityResult:
-        # Arguments come from the mission runtime_state under the tool name, or
-        # fall back to an "arguments" dict, or the whole non-internal state.
+        from app.mcp.manager import mcp_manager
+        client = mcp_manager.get_client(self._server_name)
+        if not client:
+            return CapabilityResult(success=False, status="failed", errors=[f"Server {self._server_name} unavailable"])
+            
         rs = context.runtime_state or {}
         args = rs.get(self._tool.name) or rs.get("arguments") or {}
         if not isinstance(args, dict):
             args = {"input": args}
 
-        resp = self._client.call_tool(self._tool.name, args)
+        resp = client.call_tool(self._tool.name, args)
         if resp.error:
             return CapabilityResult(
                 success=False,
@@ -72,8 +80,12 @@ class MCPToolCapability(BaseCapability):
         pass
 
     def health_check(self) -> str:
+        from app.mcp.manager import mcp_manager
         try:
-            return "healthy" if self._client.health() else "degraded"
+            client = mcp_manager.get_client(self._server_name)
+            if client and client.health():
+                return "healthy"
+            return "degraded"
         except Exception:
             return "failed"
 
